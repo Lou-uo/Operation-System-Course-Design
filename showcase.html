@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>操作系统课程设计 - 算法可视化模拟系统</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#080c14;--bg2:#0f1520;--card:#151b2b;--border:#252d40;
+  --text:#e8ecf4;--text2:#8892a8;--accent:#6366f1;--accent2:#8b5cf6;
+  --green:#10b981;--red:#ef4444;--yellow:#f59e0b;--blue:#3b82f6;--cyan:#06b6d4;
+  --grad1:linear-gradient(135deg,#6366f1,#8b5cf6);
+  --grad2:linear-gradient(135deg,#3b82f6,#06b6d4);
+  --grad3:linear-gradient(135deg,#10b981,#34d399);
+  --grad4:linear-gradient(135deg,#f59e0b,#fbbf24);
+  --grad5:linear-gradient(135deg,#ef4444,#f87171);
+  --grad6:linear-gradient(135deg,#ec4899,#f472b6);
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Microsoft YaHei',system-ui,sans-serif;line-height:1.7;overflow-x:hidden;background-image:radial-gradient(ellipse at 20% 0%,rgba(99,102,241,.05) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(139,92,246,.03) 0%,transparent 50%)}
+a{color:var(--accent);text-decoration:none;transition:color .3s}
+a:hover{color:#818cf8}
+::-webkit-scrollbar{width:8px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--accent),var(--accent2));border-radius:4px}
+
+/* ===== HERO ===== */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(99,102,241,.12) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(139,92,246,.08) 0%,transparent 50%);pointer-events:none}
+.hero::after{content:'';position:absolute;top:50%;left:50%;width:600px;height:600px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(99,102,241,.06) 0%,transparent 70%);pointer-events:none;animation:heroGlow 6s ease-in-out infinite alternate}
+@keyframes heroGlow{0%{transform:translate(-50%,-50%) scale(1);opacity:.6}100%{transform:translate(-50%,-50%) scale(1.3);opacity:1}}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.45rem 1.1rem;border:1px solid var(--border);border-radius:999px;font-size:.85rem;color:var(--text2);margin-bottom:1.5rem;backdrop-filter:blur(12px);background:rgba(26,31,46,.5);transition:border-color .3s}
+.hero-badge:hover{border-color:var(--accent)}
+.hero-badge .dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{opacity:.7;box-shadow:0 0 0 6px rgba(16,185,129,0)}}
+.hero h1{font-size:clamp(2rem,5vw,3.5rem);font-weight:800;background:linear-gradient(135deg,#fff 0%,#c7d2fe 30%,#a5b4fc 60%,#818cf8 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:1rem;letter-spacing:-.02em;animation:titleIn 1s ease .2s both}
+@keyframes titleIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.hero p{font-size:clamp(1rem,2vw,1.25rem);color:var(--text2);max-width:700px;margin-bottom:2rem;animation:titleIn 1s ease .5s both}
+.tech-tags{display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center;margin-bottom:2.5rem;animation:titleIn 1s ease .7s both}
+.tech-tag{padding:.35rem .9rem;border-radius:8px;font-size:.8rem;font-weight:600;color:#fff;transition:transform .3s,box-shadow .3s;cursor:default}
+.tech-tag:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.tech-tag:nth-child(1){background:var(--grad1)}.tech-tag:nth-child(2){background:var(--grad2)}
+.tech-tag:nth-child(3){background:var(--grad3)}.tech-tag:nth-child(4){background:var(--grad4)}
+.hero-btns{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;animation:titleIn 1s ease .9s both}
+.btn{padding:.7rem 1.8rem;border-radius:12px;font-size:.95rem;font-weight:600;border:none;cursor:pointer;transition:all .35s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden}
+.btn::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.1) 0%,transparent 50%);pointer-events:none}
+.btn-primary{background:var(--grad1);color:#fff;box-shadow:0 4px 20px rgba(99,102,241,.3)}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 8px 35px rgba(99,102,241,.45)}
+.btn-primary:active{transform:translateY(-1px)}
+.btn-outline{background:transparent;color:var(--text);border:1.5px solid var(--border);backdrop-filter:blur(8px)}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);background:rgba(99,102,241,.05)}
+
+/* ===== SECTIONS ===== */
+section{padding:5rem 1.5rem;max-width:1200px;margin:0 auto}
+.section-title{font-size:clamp(1.5rem,3vw,2.2rem);font-weight:700;text-align:center;margin-bottom:.5rem;background:linear-gradient(135deg,var(--text),var(--text2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.section-sub{text-align:center;color:var(--text2);margin-bottom:3rem;font-size:1rem}
+
+/* ===== ARCHITECTURE ===== */
+.arch-grid{display:grid;grid-template-columns:1fr;gap:1.5rem;max-width:900px;margin:0 auto}
+.arch-layer{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.5rem;position:relative;overflow:hidden;transition:transform .3s,border-color .3s,box-shadow .3s}
+.arch-layer:hover{transform:translateX(4px);border-color:rgba(99,102,241,.2);box-shadow:0 4px 24px rgba(99,102,241,.08)}
+.arch-layer::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:2px}
+.arch-layer:nth-child(1)::before{background:var(--grad1)}
+.arch-layer:nth-child(2)::before{background:var(--grad2)}
+.arch-layer:nth-child(3)::before{background:var(--grad3)}
+.arch-layer:nth-child(4)::before{background:var(--grad4)}
+.arch-layer:nth-child(5)::before{background:var(--grad5)}
+.arch-layer h3{font-size:1.05rem;margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem}
+.arch-layer h3 span{font-size:1.2rem}
+.arch-items{display:flex;flex-wrap:wrap;gap:.5rem}
+.arch-item{padding:.3rem .75rem;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.15);border-radius:6px;font-size:.8rem;color:var(--text2);transition:all .25s}
+.arch-item:hover{background:rgba(99,102,241,.15);border-color:rgba(99,102,241,.3);color:var(--text)}
+
+/* ===== MODULE CARDS ===== */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1.5rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.8rem;transition:all .4s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,.2)}
+.card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(99,102,241,.03),transparent);opacity:0;transition:opacity .4s;pointer-events:none}
+.card:hover{transform:translateY(-6px);border-color:rgba(99,102,241,.25);box-shadow:0 16px 48px rgba(99,102,241,.12)}
+.card:hover::before{opacity:1}
+.card-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-bottom:1rem;color:#fff;box-shadow:0 4px 12px rgba(0,0,0,.2);transition:transform .3s}
+.card:hover .card-icon{transform:scale(1.1) rotate(-3deg)}
+.card h3{font-size:1.1rem;margin-bottom:.5rem;font-weight:600}
+.card p{color:var(--text2);font-size:.9rem;line-height:1.6}
+.card-tags{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:1rem}
+.card-tag{font-size:.72rem;padding:.2rem .55rem;border-radius:5px;background:rgba(255,255,255,.04);color:var(--text2);transition:background .2s}
+.card-tag:hover{background:rgba(99,102,241,.1)}
+
+/* ===== FILE SYSTEM DETAIL ===== */
+.fs-detail{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2.5rem;max-width:960px;margin:0 auto;box-shadow:0 4px 30px rgba(0,0,0,.25)}
+.fs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-top:1.5rem}
+.fs-block{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.3rem;transition:border-color .3s,transform .3s}
+.fs-block:hover{border-color:rgba(6,182,212,.25);transform:translateY(-2px)}
+.fs-block h4{font-size:.95rem;margin-bottom:.6rem;color:var(--cyan)}
+.fs-block ul{list-style:none;padding:0}
+.fs-block li{font-size:.85rem;color:var(--text2);padding:.25rem 0;padding-left:1.2rem;position:relative;transition:color .2s}
+.fs-block li::before{content:'▸';position:absolute;left:0;color:var(--accent);transition:transform .2s}
+.fs-block li:hover{color:var(--text)}.fs-block li:hover::before{transform:translateX(3px)}
+
+/* ===== DISK VISUAL ===== */
+.disk-diagram{display:flex;flex-direction:column;gap:.5rem;margin-top:1.5rem}
+.disk-row{display:flex;align-items:center;gap:.8rem}
+.disk-label{font-size:.8rem;color:var(--text2);width:80px;text-align:right;flex-shrink:0}
+.disk-bar{flex:1;height:32px;border-radius:6px;display:flex;overflow:hidden;background:var(--bg)}
+.disk-seg{height:100%;display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#fff;font-weight:600;transition:width .6s}
+.disk-legend{display:flex;flex-wrap:wrap;gap:1rem;margin-top:1rem;justify-content:center}
+.disk-legend-item{display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text2)}
+.disk-legend-item .swatch{width:14px;height:14px;border-radius:3px}
+
+/* ===== TIMELINE ===== */
+.timeline{position:relative;max-width:700px;margin:0 auto}
+.timeline::before{content:'';position:absolute;left:20px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,var(--accent),var(--accent2),var(--blue),var(--green))}
+.tl-item{position:relative;padding-left:50px;margin-bottom:2rem}
+.tl-dot{position:absolute;left:12px;top:6px;width:18px;height:18px;border-radius:50%;border:3px solid var(--accent);background:var(--bg);transition:transform .3s,box-shadow .3s}
+.tl-item:hover .tl-dot{transform:scale(1.2);box-shadow:0 0 12px rgba(99,102,241,.4)}
+.tl-item:nth-child(2) .tl-dot{border-color:var(--blue)}
+.tl-item:nth-child(3) .tl-dot{border-color:var(--green)}
+.tl-item:nth-child(4) .tl-dot{border-color:var(--yellow)}
+.tl-item h4{font-size:1rem;margin-bottom:.3rem}
+.tl-item p{font-size:.88rem;color:var(--text2)}
+
+/* ===== FOOTER ===== */
+.footer-wave{position:relative;height:80px;overflow:hidden}
+.footer-wave svg{position:absolute;bottom:0;width:100%;height:80px}
+footer{text-align:center;padding:3rem 1.5rem;border-top:none;color:var(--text2);font-size:.85rem;background:var(--bg2)}
+footer .links{display:flex;gap:1.5rem;justify-content:center;margin-bottom:1rem}
+footer .links a{color:var(--text2);transition:color .3s,transform .3s;display:inline-block}
+footer .links a:hover{color:var(--accent);transform:translateY(-2px)}
+
+/* ===== BACK TO TOP ===== */
+.back-to-top{position:fixed;bottom:2rem;right:2rem;width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;cursor:pointer;font-size:1.2rem;display:flex;align-items:center;justify-content:center;opacity:0;transform:translateY(10px);transition:all .35s cubic-bezier(.4,0,.2,1);box-shadow:0 4px 16px rgba(99,102,241,.3);z-index:100}
+.back-to-top.visible{opacity:1;transform:translateY(0)}
+.back-to-top:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(99,102,241,.45)}
+
+/* ===== ANIMATIONS ===== */
+.fade-up{opacity:0;transform:translateY(30px);transition:opacity .7s cubic-bezier(.4,0,.2,1),transform .7s cubic-bezier(.4,0,.2,1)}
+.fade-up.visible{opacity:1;transform:translateY(0)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:640px){
+  .cards{grid-template-columns:1fr}
+  .fs-grid{grid-template-columns:1fr}
+  section{padding:3rem 1rem}
+  .back-to-top{bottom:1rem;right:1rem;width:38px;height:38px}
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge"><span class="dot"></span> 操作系统课程设计</div>
+  <h1>操作系统算法可视化模拟系统</h1>
+  <p>基于 HTML5 / CSS3 / JavaScript 构建的全功能操作系统核心算法模拟平台，涵盖进程管理、内存管理、文件系统、死锁处理等 5 大核心模块的交互式可视化演示。</p>
+  <div class="tech-tags">
+    <span class="tech-tag">HTML5</span>
+    <span class="tech-tag">CSS3</span>
+    <span class="tech-tag">JavaScript</span>
+    <span class="tech-tag">Canvas</span>
+  </div>
+  <div class="hero-btns">
+    <button class="btn btn-primary" onclick="document.getElementById('modules').scrollIntoView()">探索功能模块</button>
+    <button class="btn btn-outline" onclick="document.getElementById('filesystem').scrollIntoView()">文件系统详解</button>
+  </div>
+</div>
+
+<!-- ARCHITECTURE -->
+<section id="architecture">
+  <h2 class="section-title fade-up">系统架构总览</h2>
+  <p class="section-sub fade-up">分层架构设计，模块间低耦合高内聚</p>
+  <div class="arch-grid">
+    <div class="arch-layer fade-up">
+      <h3><span>🖥️</span> 应用层 — 可视化界面</h3>
+      <div class="arch-items">
+        <span class="arch-item">HTML5 单文件架构</span>
+        <span class="arch-item">CSS3 动画 / 渐变</span>
+        <span class="arch-item">Canvas 2D 绑图</span>
+        <span class="arch-item">响应式布局</span>
+        <span class="arch-item">async/await 异步动画</span>
+        <span class="arch-item">事件驱动交互</span>
+      </div>
+    </div>
+    <div class="arch-layer fade-up">
+      <h3><span>⚙️</span> 逻辑层 — 模块化函数组织</h3>
+      <div class="arch-items">
+        <span class="arch-item">模块化函数分组</span>
+        <span class="arch-item">CSS 变量主题系统</span>
+        <span class="arch-item">DOM 事件驱动</span>
+        <span class="arch-item">Tab 面板路由</span>
+        <span class="arch-item">日志系统 addLog()</span>
+      </div>
+    </div>
+    <div class="arch-layer fade-up">
+      <h3><span>🧩</span> 业务层 — 5 大算法模拟模块</h3>
+      <div class="arch-items">
+        <span class="arch-item">磁盘与文件管理</span>
+        <span class="arch-item">页面置换策略</span>
+        <span class="arch-item">进程调度</span>
+        <span class="arch-item">死锁处理</span>
+        <span class="arch-item">同步与通信</span>
+      </div>
+    </div>
+    <div class="arch-layer fade-up">
+      <h3><span>📦</span> 数据层 — 核心数据结构</h3>
+      <div class="arch-items">
+        <span class="arch-item">diskBlocks[] 磁盘块数组</span>
+        <span class="arch-item">files[] 文件控制块</span>
+        <span class="arch-item">bufPages[] LRU 缓冲页</span>
+        <span class="arch-item">processes[] 进程队列</span>
+        <span class="arch-item">semaphores 信号量</span>
+        <span class="arch-item">msgQueue[] 消息队列</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MODULES -->
+<section id="modules">
+  <h2 class="section-title fade-up">功能模块</h2>
+  <p class="section-sub fade-up">涵盖操作系统核心功能的 5 大可视化模拟模块</p>
+  <div class="cards">
+
+    <div class="card fade-up">
+      <div class="card-icon" style="background:var(--grad1)">💾</div>
+      <h3>磁盘与文件管理</h3>
+      <p>模拟 M×N 磁盘（64B×1024块），实现二级目录（MFD→UFD）、连续存储分配、空闲盘区链管理。支持文件的新建、查看、修改、删除，含内存缓冲页（LRU 置换）与文件保护机制。</p>
+      <div class="card-tags"><span class="card-tag">二级目录</span><span class="card-tag">连续存储</span><span class="card-tag">空闲盘区链</span><span class="card-tag">LRU 缓冲页</span></div>
+    </div>
+
+    <div class="card fade-up">
+      <div class="card-icon" style="background:var(--grad2)">📄</div>
+      <h3>页面置换策略</h3>
+      <p>支持 LRU（最近最少使用）、FIFO（先进先出）、OPT（最优置换）、LFU（最不经常使用）、CLOCK（时钟算法）共 5 种页面置换算法，可视化帧状态、命中率统计与逐步/自动动画。</p>
+      <div class="card-tags"><span class="card-tag">LRU</span><span class="card-tag">FIFO</span><span class="card-tag">OPT</span><span class="card-tag">LFU</span><span class="card-tag">CLOCK</span></div>
+    </div>
+
+    <div class="card fade-up">
+      <div class="card-icon" style="background:var(--grad3)">🔄</div>
+      <h3>进程调度</h3>
+      <p>支持 FCFS（先来先服务）、SJF（短作业优先）、RR（时间片轮转）、优先级调度 4 种算法，可视化甘特图展示调度结果，统计平均等待/周转/带权周转时间。</p>
+      <div class="card-tags"><span class="card-tag">FCFS</span><span class="card-tag">SJF</span><span class="card-tag">RR</span><span class="card-tag">优先级</span></div>
+    </div>
+
+    <div class="card fade-up">
+      <div class="card-icon" style="background:var(--grad5)">⛓️</div>
+      <h3>死锁处理</h3>
+      <p>基于银行家算法实现安全序列检测，自动生成 Max / Allocation / Need 矩阵。Canvas 绘制资源分配图（进程-资源有向图），判断系统安全状态。</p>
+      <div class="card-tags"><span class="card-tag">银行家算法</span><span class="card-tag">安全序列</span><span class="card-tag">资源分配图</span></div>
+    </div>
+
+    <div class="card fade-up">
+      <div class="card-icon" style="background:var(--grad6)">🔗</div>
+      <h3>同步与通信</h3>
+      <p>生产者-消费者信号量同步模拟（mutex / empty / full 三信号量），以及进程间消息传递队列机制。可视化进程状态（就绪/运行/阻塞）与缓冲区内容。</p>
+      <div class="card-tags"><span class="card-tag">生产者-消费者</span><span class="card-tag">信号量</span><span class="card-tag">消息传递</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FILE SYSTEM -->
+<section id="filesystem">
+  <h2 class="section-title fade-up">文件系统详解</h2>
+  <p class="section-sub fade-up">二级目录 · 连续存储 · 空闲盘区链 · LRU 缓冲页置换</p>
+  <div class="fs-detail fade-up">
+    <div class="fs-grid">
+      <div class="fs-block">
+        <h4>📂 二级目录结构</h4>
+        <ul>
+          <li>主文件目录 MFD — 按用户划分</li>
+          <li>用户文件目录 UFD — 每用户独立</li>
+          <li>FCB 包含：文件名、创建时间、权限、起始盘块号、文件长度</li>
+          <li>支持目录查询、文件检索</li>
+        </ul>
+      </div>
+      <div class="fs-block">
+        <h4>💽 数据组织 — 连续存储</h4>
+        <ul>
+          <li>文件数据存放在连续的磁盘块中</li>
+          <li>FCB 记录起始块号 + 占用块数</li>
+          <li>支持顺序访问与直接访问</li>
+          <li>读写通过内存缓冲页进行</li>
+        </ul>
+      </div>
+      <div class="fs-block">
+        <h4>🗂️ 空闲盘区管理 — 空闲盘区链</h4>
+        <ul>
+          <li>将所有空闲盘区按起始地址链接</li>
+          <li>每个空闲区记录：起始块号 + 空闲块数</li>
+          <li>分配时从链表中查找合适区域</li>
+          <li>回收时合并相邻空闲区</li>
+        </ul>
+      </div>
+      <div class="fs-block">
+        <h4>📑 内存缓冲页 — LRU 置换</h4>
+        <ul>
+          <li>M×K 缓冲区（页大小 = 盘块大小）</li>
+          <li>每页记录：所有者、访问时间、dirty 位</li>
+          <li>LRU 策略置换最久未访问页面</li>
+          <li>脏页写回磁盘后再释放</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- DISK DIAGRAM -->
+    <h4 style="margin-top:2rem;margin-bottom:.5rem;color:var(--text)">模拟磁盘布局（M × N）</h4>
+    <p style="font-size:.85rem;color:var(--text2);margin-bottom:1rem">M = 64B / 盘块，N = 1024 盘块。前部存放目录与元信息，后部存放文件数据。</p>
+    <div class="disk-diagram">
+      <div class="disk-row">
+        <span class="disk-label">磁盘总览</span>
+        <div class="disk-bar">
+          <div class="disk-seg" style="width:8%;background:#6366f1" title="MFD">MFD</div>
+          <div class="disk-seg" style="width:10%;background:#8b5cf6" title="UFD">UFD</div>
+          <div class="disk-seg" style="width:6%;background:#a78bfa" title="位图">位图</div>
+          <div class="disk-seg" style="width:16%;background:#3b82f6" title="文件A">文件A</div>
+          <div class="disk-seg" style="width:12%;background:#06b6d4" title="文件B">文件B</div>
+          <div class="disk-seg" style="width:8%;background:#10b981" title="文件C">文件C</div>
+          <div class="disk-seg" style="width:40%;background:rgba(255,255,255,.08);color:var(--text2)" title="空闲">空闲区</div>
+        </div>
+      </div>
+      <div class="disk-row">
+        <span class="disk-label">元数据区</span>
+        <div class="disk-bar">
+          <div class="disk-seg" style="width:33%;background:#6366f1">MFD 主目录</div>
+          <div class="disk-seg" style="width:42%;background:#8b5cf6">UFD 用户目录</div>
+          <div class="disk-seg" style="width:25%;background:#a78bfa">空闲区表</div>
+        </div>
+      </div>
+      <div class="disk-row">
+        <span class="disk-label">数据区</span>
+        <div class="disk-bar">
+          <div class="disk-seg" style="width:35%;background:#3b82f6">文件A (连续)</div>
+          <div class="disk-seg" style="width:25%;background:#06b6d4">文件B (连续)</div>
+          <div class="disk-seg" style="width:15%;background:#10b981">文件C</div>
+          <div class="disk-seg" style="width:25%;background:rgba(255,255,255,.08);color:var(--text2)">空闲</div>
+        </div>
+      </div>
+    </div>
+    <div class="disk-legend">
+      <span class="disk-legend-item"><span class="swatch" style="background:#6366f1"></span>主文件目录</span>
+      <span class="disk-legend-item"><span class="swatch" style="background:#8b5cf6"></span>用户目录</span>
+      <span class="disk-legend-item"><span class="swatch" style="background:#3b82f6"></span>文件数据</span>
+      <span class="disk-legend-item"><span class="swatch" style="background:rgba(255,255,255,.15)"></span>空闲区</span>
+    </div>
+  </div>
+</section>
+
+<!-- DESIGN PATTERN -->
+<section id="pattern">
+  <h2 class="section-title fade-up">设计亮点 — 前端架构</h2>
+  <p class="section-sub fade-up">纯 HTML 单文件实现的核心设计思路</p>
+  <div class="timeline fade-up">
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <h4>单文件架构 — All-in-One HTML</h4>
+      <p>所有 HTML 结构、CSS 样式、JavaScript 逻辑均内联在同一文件中，无需构建工具或服务器，双击即可在浏览器中运行。</p>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <h4>CSS 变量主题系统 — Design Tokens</h4>
+      <p>通过 :root 定义颜色变量（--accent、--green、--red 等），全局一致配色，修改一处即可调整整体主题。</p>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <h4>异步动画引擎 — async/await + setTimeout</h4>
+      <p>缓冲页加载、页面置换、进程调度等过程使用 async 函数配合延时实现逐步动画，代码可读性高。</p>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <h4>Canvas 可视化 — 资源分配图 & 甘特图</h4>
+      <p>死锁模块使用 Canvas 2D API 绘制进程-资源有向图，进程调度模块动态生成甘特图 SVG 可视化。</p>
+    </div>
+  </div>
+</section>
+
+<!-- FILE OPS -->
+<section id="fileops">
+  <h2 class="section-title fade-up">文件操作接口</h2>
+  <p class="section-sub fade-up">完整的文件生命周期管理</p>
+  <div class="cards" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
+    <div class="card fade-up" style="padding:1.3rem;text-align:center">
+      <div style="font-size:2rem;margin-bottom:.5rem">📝</div>
+      <h3 style="font-size:.95rem">新建文件</h3>
+      <p style="font-size:.82rem">输入文件信息后在模拟磁盘中建立目录项并分配连续存储空间</p>
+    </div>
+    <div class="card fade-up" style="padding:1.3rem;text-align:center">
+      <div style="font-size:2rem;margin-bottom:.5rem">🔍</div>
+      <h3 style="font-size:.95rem">查询目录</h3>
+      <p style="font-size:.82rem">浏览当前磁盘中的目录信息：文件名、创建时间、占用盘块数</p>
+    </div>
+    <div class="card fade-up" style="padding:1.3rem;text-align:center">
+      <div style="font-size:2rem;margin-bottom:.5rem">👁️</div>
+      <h3 style="font-size:.95rem">查看内容</h3>
+      <p style="font-size:.82rem">查看指定文件的任意盘块信息，经缓冲页读取并显示</p>
+    </div>
+    <div class="card fade-up" style="padding:1.3rem;text-align:center">
+      <div style="font-size:2rem;margin-bottom:.5rem">✏️</div>
+      <h3 style="font-size:.95rem">修改内容</h3>
+      <p style="font-size:.82rem">修改指定文件任意盘块内容，脏页标记后写回磁盘</p>
+    </div>
+    <div class="card fade-up" style="padding:1.3rem;text-align:center">
+      <div style="font-size:2rem;margin-bottom:.5rem">🗑️</div>
+      <h3 style="font-size:.95rem">删除文件</h3>
+      <p style="font-size:.82rem">删除目录项、释放磁盘数据块并更新空闲盘区链，含文件保护</p>
+    </div>
+  </div>
+</section>
+
+<!-- SYNC -->
+<section id="sync">
+  <h2 class="section-title fade-up">进程同步与互斥</h2>
+  <p class="section-sub fade-up">多线程环境下的并发控制与资源管理</p>
+  <div class="cards" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">
+    <div class="card fade-up">
+      <h3 style="font-size:.95rem">🔧 命令进程</h3>
+      <p>每个文件操作命令作为独立进程运行，支持并发执行与调度。</p>
+    </div>
+    <div class="card fade-up">
+      <h3 style="font-size:.95rem">📡 进程通信</h3>
+      <p>支持管道、消息传递、共享内存三种 IPC 方式，进程间通过 Message 结构交换数据。</p>
+    </div>
+    <div class="card fade-up">
+      <h3 style="font-size:.95rem">🛡️ 同步互斥</h3>
+      <p>对模拟磁盘和内存缓冲的并发访问采用信号量 / 条件变量机制进行同步与互斥控制。</p>
+    </div>
+    <div class="card fade-up">
+      <h3 style="font-size:.95rem">⏰ 进程调度</h3>
+      <p>并发进程采用时间片轮转 RR 或优先级策略进行调度，支持动态优先级调整。</p>
+    </div>
+  </div>
+</section>
+
+<!-- BACK TO TOP -->
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<!-- FOOTER WAVE -->
+<div class="footer-wave">
+  <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
+    <path fill="var(--bg2)" d="M0,40 C360,80 720,0 1080,40 C1260,60 1380,30 1440,40 L1440,80 L0,80 Z"/>
+  </svg>
+</div>
+
+<footer>
+  <div class="links">
+    <a href="https://github.com/Lou-uo" target="_blank">GitHub</a>
+    <a href="https://www.atpoint.top/" target="_blank">HomePage</a>
+  </div>
+  <p>操作系统课程设计 — 算法可视化模拟系统 &copy; 2026 @AtPoint</p>
+</footer>
+
+<script>
+// Scroll fade-in animation
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+// Back to top button
+const backBtn = document.getElementById('backToTop');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 400) backBtn.classList.add('visible');
+  else backBtn.classList.remove('visible');
+}, { passive: true });
+
+// Staggered fade-up for cards
+const cards = document.querySelectorAll('.card.fade-up');
+cards.forEach((card, i) => {
+  card.style.transitionDelay = (i % 4) * 0.1 + 's';
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>操作系统算法可视化模拟器</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#080c14;--bg2:#0f1520;--card:#151b2b;--border:#252d40;--text:#e8ecf4;--text2:#8892a8;--accent:#6366f1;--accent2:#8b5cf6;--green:#10b981;--red:#ef4444;--yellow:#f59e0b;--blue:#3b82f6;--cyan:#06b6d4;--pink:#ec4899;--card-glow:0 4px 24px rgba(0,0,0,.3)}
+html{font-size:15px}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Microsoft YaHei',system-ui,sans-serif;min-height:100vh;background-image:radial-gradient(ellipse at 20% 0%,rgba(99,102,241,.06) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(139,92,246,.04) 0%,transparent 50%)}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--accent);border-radius:3px}
+
+/* HEADER */
+.header{background:linear-gradient(180deg,rgba(15,21,32,.98),rgba(15,21,32,.95));backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:.8rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;position:sticky;top:0;z-index:100}
+.header h1{font-size:1.15rem;font-weight:700;background:linear-gradient(135deg,#c7d2fe,#a5b4fc,#818cf8);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;position:relative}
+.header h1::after{content:'';position:absolute;bottom:-2px;left:0;width:100%;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2),transparent);border-radius:1px}
+.tabs{display:flex;gap:.4rem;margin-left:auto;flex-wrap:wrap;position:relative}
+.tab{padding:.45rem 1rem;border-radius:8px;font-size:.82rem;cursor:pointer;border:1px solid transparent;color:var(--text2);background:transparent;transition:all .3s cubic-bezier(.4,0,.2,1);font-weight:500;position:relative;overflow:hidden}
+.tab::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.1));opacity:0;transition:opacity .3s}
+.tab:hover{color:var(--text)}.tab:hover::before{opacity:1}
+.tab.active{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#fff;box-shadow:0 2px 12px rgba(99,102,241,.35)}.tab.active::before{opacity:0}
+
+/* MAIN */
+.main{padding:1.2rem;max-width:1300px;margin:0 auto}
+.panel{display:none;animation:panelIn .4s ease}.panel.active{display:block}
+@keyframes panelIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* COMMON */
+.row{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.col{flex:1;min-width:280px}
+.box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.2rem;margin-bottom:1rem;box-shadow:var(--card-glow);transition:border-color .3s,box-shadow .3s}
+.box:hover{border-color:rgba(99,102,241,.2);box-shadow:0 4px 30px rgba(99,102,241,.06)}
+.box h3{font-size:.95rem;margin-bottom:.8rem;display:flex;align-items:center;gap:.4rem;color:var(--text)}
+.btn{padding:.4rem 1rem;border-radius:8px;font-size:.8rem;border:none;cursor:pointer;font-weight:600;transition:all .25s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden}
+.btn:active{transform:scale(.95)}
+.btn-p{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 2px 8px rgba(99,102,241,.25)}.btn-p:hover{box-shadow:0 4px 16px rgba(99,102,241,.4);transform:translateY(-1px)}
+.btn-s{background:rgba(99,102,241,.1);color:var(--accent);border:1px solid rgba(99,102,241,.25)}
+.btn-s:hover{background:rgba(99,102,241,.2);border-color:rgba(99,102,241,.4)}
+.btn-g{background:linear-gradient(135deg,var(--green),#34d399);color:#fff;box-shadow:0 2px 8px rgba(16,185,129,.25)}.btn-g:hover{box-shadow:0 4px 16px rgba(16,185,129,.4);transform:translateY(-1px)}
+.btn-r{background:linear-gradient(135deg,var(--red),#f87171);color:#fff;box-shadow:0 2px 8px rgba(239,68,68,.2)}.btn-r:hover{box-shadow:0 4px 16px rgba(239,68,68,.35);transform:translateY(-1px)}
+.btn-y{background:linear-gradient(135deg,var(--yellow),#fbbf24);color:#000;box-shadow:0 2px 8px rgba(245,158,11,.2)}.btn-y:hover{box-shadow:0 4px 16px rgba(245,158,11,.35);transform:translateY(-1px)}
+input,select{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.4rem .7rem;color:var(--text);font-size:.82rem;outline:none;transition:border-color .3s,box-shadow .3s}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+label{font-size:.82rem;color:var(--text2);font-weight:500}
+.badge{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.72rem;font-weight:600;color:#fff}
+.log{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.6rem;max-height:160px;overflow-y:auto;font-size:.78rem;color:var(--text2);line-height:1.8}
+.log div{padding:.15rem .3rem;border-radius:4px;animation:logSlide .3s ease}
+.log div:nth-child(odd){background:rgba(255,255,255,.015)}
+@keyframes logSlide{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+
+/* DISK GRID */
+.disk-grid{display:grid;grid-template-columns:repeat(32,1fr);gap:2px}
+.disk-cell{aspect-ratio:1;border-radius:3px;font-size:.5rem;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;transition:all .3s cubic-bezier(.4,0,.2,1);cursor:default;position:relative}
+.disk-cell:hover{transform:scale(1.3);z-index:5;box-shadow:0 0 8px rgba(255,255,255,.15)}
+.disk-cell[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:115%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.9);color:#fff;padding:3px 8px;border-radius:6px;font-size:.7rem;white-space:nowrap;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.cell-free{background:rgba(255,255,255,.04)}.cell-dir{background:var(--accent)}.cell-data{background:var(--blue)}.cell-meta{background:var(--accent2)}
+
+/* DIR TREE */
+.dir-tree{font-size:.82rem;padding:.5rem 0}
+.dir-node{padding:.25rem 0;padding-left:1.2rem;position:relative;transition:background .2s}
+.dir-node:hover{background:rgba(99,102,241,.05);border-radius:4px}
+.dir-node::before{content:'├─';position:absolute;left:0;color:var(--border)}
+.dir-node:last-child::before{content:'└─'}
+.dir-file{color:var(--cyan);cursor:pointer;transition:color .2s}.dir-file:hover{color:#67e8f9;text-decoration:underline}
+.dir-folder{color:var(--yellow);font-weight:600}
+
+/* FILE TABLE */
+.ftable{width:100%;border-collapse:collapse;font-size:.8rem}
+.ftable th{background:var(--bg2);padding:.45rem .7rem;text-align:left;font-weight:600;color:var(--text2);border-bottom:2px solid var(--border)}
+.ftable td{padding:.45rem .7rem;border-bottom:1px solid rgba(255,255,255,.03)}
+.ftable tr{transition:background .2s}
+.ftable tbody tr:hover td{background:rgba(99,102,241,.06)}
+
+/* MEMORY FRAMES */
+.frames{display:flex;gap:.5rem;flex-wrap:wrap;margin:.5rem 0}
+.frame{width:70px;height:80px;border-radius:10px;border:2px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .4s cubic-bezier(.4,0,.2,1);position:relative;font-size:.78rem;background:var(--bg2)}
+.frame.hit{border-color:var(--green);background:rgba(16,185,129,.1);box-shadow:0 0 16px rgba(16,185,129,.25);animation:frameHit .5s ease}
+.frame.fault{border-color:var(--red);background:rgba(239,68,68,.1);box-shadow:0 0 16px rgba(239,68,68,.25);animation:frameShake .4s ease}
+@keyframes frameHit{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes frameShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.frame .fid{font-weight:700;font-size:1rem}.frame .finfo{font-size:.65rem;color:var(--text2);margin-top:.2rem}
+.frame .dirty{position:absolute;top:3px;right:5px;font-size:.6rem;color:var(--red)}
+
+/* GANTT */
+.gantt{display:flex;gap:0;height:44px;border-radius:8px;overflow:hidden;margin:.5rem 0;box-shadow:inset 0 1px 3px rgba(0,0,0,.3)}
+.gantt-block{display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;color:#fff;transition:width .4s;position:relative;overflow:hidden}
+.gantt-block::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.1) 0%,transparent 50%);pointer-events:none}
+.gantt-labels{display:flex;gap:0;font-size:.65rem;color:var(--text2);margin-top:.2rem}
+.gantt-labels span{display:flex;justify-content:center}
+
+/* PROCESS NODES */
+.proc-list{display:flex;gap:.6rem;flex-wrap:wrap;margin:.5rem 0}
+.proc-node{padding:.5rem .8rem;border-radius:10px;border:2px solid var(--border);font-size:.8rem;transition:all .35s cubic-bezier(.4,0,.2,1);min-width:80px;text-align:center;background:var(--bg2)}
+.proc-node.running{border-color:var(--green);background:rgba(16,185,129,.12);box-shadow:0 0 14px rgba(16,185,129,.2);animation:procPulse 1.5s infinite}
+@keyframes procPulse{0%,100%{box-shadow:0 0 14px rgba(16,185,129,.2)}50%{box-shadow:0 0 24px rgba(16,185,129,.35)}}
+.proc-node.ready{border-color:var(--yellow);background:rgba(245,158,11,.08)}
+.proc-node.done{border-color:var(--text2);opacity:.4}
+.proc-node.waiting{border-color:var(--red);background:rgba(239,68,68,.08)}
+
+/* DEADLOCK GRAPH */
+.graph-canvas{background:var(--bg);border:1px solid var(--border);border-radius:10px;display:block;margin:0 auto;box-shadow:inset 0 1px 3px rgba(0,0,0,.2)}
+
+/* BANKER TABLE */
+.btable{width:100%;border-collapse:collapse;font-size:.78rem;margin:.5rem 0}
+.btable th,.btable td{padding:.4rem .5rem;border:1px solid var(--border);text-align:center}
+.btable th{background:var(--bg2);color:var(--text2);font-weight:600}
+.btable .safe{background:rgba(16,185,129,.12);color:var(--green);animation:safeIn .5s ease}
+.btable .unsafe{background:rgba(239,68,68,.08);color:var(--red)}
+@keyframes safeIn{from{background:rgba(16,185,129,.3)}to{background:rgba(16,185,129,.12)}}
+
+/* STAT */
+.stats{display:flex;gap:1rem;flex-wrap:wrap;margin:.5rem 0}
+.stat{background:var(--bg2);border-radius:10px;padding:.7rem 1rem;text-align:center;flex:1;min-width:100px;border:1px solid var(--border);transition:border-color .3s,transform .3s}
+.stat:hover{border-color:rgba(99,102,241,.2);transform:translateY(-2px)}
+.stat .sv{font-size:1.4rem;font-weight:700;background:linear-gradient(135deg,var(--cyan),var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;transition:all .3s}.stat .sl{font-size:.72rem;color:var(--text2);margin-top:.1rem}
+
+/* BUFFER PAGES */
+.buf-pages{display:flex;gap:.5rem;flex-wrap:wrap;margin:.5rem 0}
+.buf-page{width:90px;height:100px;border-radius:10px;border:2px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .5s cubic-bezier(.4,0,.2,1);position:relative;font-size:.78rem;background:var(--bg2)}
+.buf-page.loaded{border-color:var(--cyan);background:rgba(6,182,212,.08);box-shadow:0 0 15px rgba(6,182,212,.2)}
+.buf-page.evict{border-color:var(--red);background:rgba(239,68,68,.1);animation:evictPulse .6s ease}
+.buf-page.writeback{border-color:var(--yellow);background:rgba(245,158,11,.1);animation:writebackPulse .8s ease}
+.buf-page .bpid{font-weight:700;font-size:.9rem;color:var(--cyan)}.buf-page .bpowner{font-size:.62rem;color:var(--text2);margin-top:2px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.buf-page .bpinfo{font-size:.6rem;color:var(--text2);margin-top:1px}
+.buf-page .bpdirty{position:absolute;top:3px;right:5px;font-size:.58rem;color:var(--red);font-weight:700}
+.buf-page .bptime{position:absolute;bottom:3px;font-size:.55rem;color:var(--text2)}
+.buf-page.empty{border-style:dashed;opacity:.5}
+.buf-page.empty .bpid{color:var(--text2)}
+
+/* DISK CELL ANIMATION */
+.disk-cell.reading{animation:diskRead .5s ease;background:var(--cyan)!important;box-shadow:0 0 8px var(--cyan)}
+.disk-cell.writing{animation:diskWrite .5s ease;background:var(--yellow)!important;box-shadow:0 0 8px var(--yellow)}
+@keyframes diskRead{0%{transform:scale(1)}50%{transform:scale(1.4)}100%{transform:scale(1)}}
+@keyframes diskWrite{0%{transform:scale(1)}50%{transform:scale(1.4);background:var(--yellow)}100%{transform:scale(1)}}
+@keyframes evictPulse{0%{transform:scale(1)}30%{transform:scale(.9)}60%{transform:scale(1.05)}100%{transform:scale(1)}}
+@keyframes writebackPulse{0%{box-shadow:0 0 0 rgba(245,158,11,0)}50%{box-shadow:0 0 20px rgba(245,158,11,.4)}100%{box-shadow:0 0 0 rgba(245,158,11,0)}}
+
+/* FILE IN-USE BADGE */
+.in-use-badge{display:inline-block;padding:.1rem .4rem;border-radius:4px;font-size:.65rem;font-weight:600;background:rgba(245,158,11,.2);color:var(--yellow);margin-left:4px;animation:inUsePulse 2s infinite}
+@keyframes inUsePulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+@media(max-width:700px){.disk-grid{grid-template-columns:repeat(16,1fr)}.col{min-width:100%}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>操作系统算法可视化模拟器</h1>
+  <div class="tabs">
+    <button class="tab active" data-tab="disk">磁盘与文件管理</button>
+    <button class="tab" data-tab="page">页面置换策略</button>
+    <button class="tab" data-tab="sched">进程调度</button>
+    <button class="tab" data-tab="dead">死锁处理</button>
+    <button class="tab" data-tab="sync">同步与通信</button>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ============ DISK PANEL ============ -->
+<div class="panel active" id="panel-disk">
+<div class="row">
+  <div class="col" style="flex:2">
+    <div class="box">
+      <h3>💾 模拟磁盘（32×32 = 1024 块，每块 64B）</h3>
+      <div class="disk-grid" id="diskGrid"></div>
+      <div style="display:flex;gap:1rem;margin-top:.8rem;flex-wrap:wrap;font-size:.78rem;color:var(--text2)">
+        <span><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:var(--accent);vertical-align:middle;margin-right:3px"></span>目录区</span>
+        <span><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:var(--accent2);vertical-align:middle;margin-right:3px"></span>元数据</span>
+        <span><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:var(--blue);vertical-align:middle;margin-right:3px"></span>文件数据</span>
+        <span><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:rgba(255,255,255,.1);vertical-align:middle;margin-right:3px"></span>空闲</span>
+      </div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="box">
+      <h3>📂 二级目录</h3>
+      <div class="dir-tree" id="dirTree"></div>
+    </div>
+    <div class="box">
+      <h3>🛠️ 文件操作</h3>
+      <div style="display:flex;flex-direction:column;gap:.6rem">
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <input id="newFileName" placeholder="文件名" style="flex:1">
+          <input id="newFileSize" placeholder="占用块数" type="number" min="1" max="50" value="5" style="width:80px">
+        </div>
+        <input id="newFileOwner" placeholder="所属用户 (默认 user1)" style="width:100%">
+        <textarea id="newFileContent" placeholder="文件内容（可选，将按64B拆分存入物理块）" rows="3" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:.35rem .6rem;color:var(--text);font-size:.82rem;resize:vertical;outline:none"></textarea>
+        <div style="display:flex;gap:.5rem">
+          <button class="btn btn-p" onclick="diskCreateFile()">新建文件</button>
+          <button class="btn btn-r" onclick="diskDeleteFile()">删除文件</button>
+          <button class="btn btn-s" onclick="diskViewFile()">查看内容</button>
+          <button class="btn btn-y" onclick="diskEditFile()">修改内容</button>
+        </div>
+        <div id="fileContent" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.5rem;font-size:.78rem;min-height:40px;color:var(--text2);display:none;max-height:300px;overflow-y:auto"></div>
+      </div>
+    </div>
+    <div class="box">
+      <h3>📑 内存缓冲页（M×K = 64B×8）</h3>
+      <div class="buf-pages" id="bufPages"></div>
+      <div style="font-size:.75rem;color:var(--text2);margin-top:.4rem">
+        缓冲状态: <span id="bufStatus" style="color:var(--cyan)">0/8 已用</span> |
+        置换策略: <span style="color:var(--accent)">LRU</span> |
+        写回次数: <span id="bufWritebacks" style="color:var(--yellow)">0</span>
+      </div>
+    </div>
+    <div class="box">
+      <h3>📊 空闲盘区链</h3>
+      <div id="freeList" style="font-size:.8rem;color:var(--text2);line-height:1.8"></div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col">
+    <div class="box">
+      <h3>📋 文件目录表</h3>
+      <table class="ftable" id="fileTable"><thead><tr><th>文件名</th><th>所属用户</th><th>创建时间</th><th>起始块</th><th>占用块数</th><th>权限</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+</div>
+<div class="box"><h3>📜 操作日志</h3><div class="log" id="diskLog"></div></div>
+</div>
+
+<!-- ============ PAGE PANEL ============ -->
+<div class="panel" id="panel-page">
+<div class="row">
+  <div class="col">
+    <div class="box">
+      <h3>⚙️ 参数设置</h3>
+      <div style="display:flex;gap:.8rem;flex-wrap:wrap;align-items:end">
+        <div><label>置换策略</label><br>
+          <select id="pageAlgo" onchange="pageReset()">
+            <option value="lru">LRU 最近最少使用</option>
+            <option value="fifo">FIFO 先进先出</option>
+            <option value="opt">OPT 最优置换</option>
+            <option value="lfu">LFU 最不经常使用</option>
+            <option value="clock">CLOCK 时钟算法</option>
+          </select>
+        </div>
+        <div><label>物理帧数 (K)</label><br><input id="pageFrames" type="number" value="4" min="2" max="8" style="width:70px"></div>
+        <div><label>访问序列长度</label><br><input id="pageSeqLen" type="number" value="20" min="5" max="40" style="width:70px"></div>
+        <div><label>页面范围</label><br><input id="pageRange" type="number" value="10" min="3" max="20" style="width:70px"></div>
+        <button class="btn btn-p" onclick="pageGenerate()">生成序列</button>
+        <button class="btn btn-s" onclick="pageStep()">逐步执行</button>
+        <button class="btn btn-g" onclick="pageRunAll()">自动执行</button>
+        <button class="btn btn-r" onclick="pageReset()">重置</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col">
+    <div class="box">
+      <h3>📄 访问序列</h3>
+      <div id="pageSeq" style="display:flex;gap:.3rem;flex-wrap:wrap;margin:.3rem 0"></div>
+      <div style="margin-top:.5rem;font-size:.82rem;color:var(--text2)">当前访问: <span id="pageCurrent" style="color:var(--cyan);font-weight:700;font-size:1rem">-</span>  步骤: <span id="pageStepNum">0</span></div>
+    </div>
+    <div class="box">
+      <h3>🧠 物理内存帧</h3>
+      <div class="frames" id="memFrames"></div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="box">
+      <h3>📊 统计信息</h3>
+      <div class="stats" id="pageStats">
+        <div class="stat"><div class="sv" id="statHit">0</div><div class="sl">命中</div></div>
+        <div class="stat"><div class="sv" id="statFault">0</div><div class="sl">缺页</div></div>
+        <div class="stat"><div class="sv" id="statRate">0%</div><div class="sl">命中率</div></div>
+        <div class="stat"><div class="sv" id="statReplace">0</div><div class="sl">置换</div></div>
+      </div>
+    </div>
+    <div class="box">
+      <h3>📜 操作日志</h3>
+      <div class="log" id="pageLog"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ============ SCHED PANEL ============ -->
+<div class="panel" id="panel-sched">
+<div class="row">
+  <div class="col">
+    <div class="box">
+      <h3>⚙️ 调度设置</h3>
+      <div style="display:flex;gap:.8rem;flex-wrap:wrap;align-items:end">
+        <div><label>调度算法</label><br>
+          <select id="schedAlgo" onchange="schedReset()">
+            <option value="fcfs">FCFS 先来先服务</option>
+            <option value="sjf">SJF 短作业优先</option>
+            <option value="rr">RR 时间片轮转</option>
+            <option value="priority">优先级调度</option>
+          </select>
+        </div>
+        <div id="rrQuantumBox" style="display:none"><label>时间片</label><br><input id="rrQuantum" type="number" value="2" min="1" max="10" style="width:60px"></div>
+        <button class="btn btn-p" onclick="schedAddProcess()">添加进程</button>
+        <button class="btn btn-g" onclick="schedRun()">执行调度</button>
+        <button class="btn btn-r" onclick="schedReset()">重置</button>
+        <button class="btn btn-s" onclick="schedRandom()">随机生成</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col">
+    <div class="box">
+      <h3>📋 进程队列</h3>
+      <table class="ftable" id="schedTable"><thead><tr><th>进程</th><th>到达时间</th><th>执行时间</th><th>优先级</th><th>状态</th></tr></thead><tbody></tbody></table>
+    </div>
+    <div class="box">
+      <h3>📊 甘特图</h3>
+      <div id="ganttContainer"><div style="color:var(--text2);font-size:.82rem">点击"执行调度"查看甘特图</div></div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="box">
+      <h3>📈 调度结果</h3>
+      <div class="stats" id="schedStats">
+        <div class="stat"><div class="sv" id="schedAvgWait">-</div><div class="sl">平均等待时间</div></div>
+        <div class="stat"><div class="sv" id="schedAvgTurn">-</div><div class="sl">平均周转时间</div></div>
+        <div class="stat"><div class="sv" id="schedAvgWTurn">-</div><div class="sl">平均带权周转</div></div>
+      </div>
+    </div>
+    <div class="box">
+      <h3>🔄 进程状态</h3>
+      <div class="proc-list" id="procNodes"></div>
+    </div>
+    <div class="box"><h3>📜 日志</h3><div class="log" id="schedLog"></div></div>
+  </div>
+</div>
+</div>
+
+<!-- ============ DEADLOCK PANEL ============ -->
+<div class="panel" id="panel-dead">
+<div class="row">
+  <div class="col">
+    <div class="box">
+      <h3>🏦 银行家算法</h3>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap;align-items:end;margin-bottom:.8rem">
+        <div><label>进程数</label><br><input id="bankProc" type="number" value="5" min="2" max="8" style="width:60px"></div>
+        <div><label>资源种类</label><br><input id="bankRes" type="number" value="3" min="1" max="5" style="width:60px"></div>
+        <button class="btn btn-p" onclick="bankInit()">初始化</button>
+        <button class="btn btn-g" onclick="bankFindSafe()">查找安全序列</button>
+        <button class="btn btn-s" onclick="bankRandom()">随机生成</button>
+      </div>
+      <div id="bankInputs"></div>
+      <div style="margin-top:.5rem"><label>可用资源 Available</label><br><input id="bankAvail" placeholder="如: 3 3 2" style="width:100%;margin-top:.3rem"></div>
+    </div>
+    <div class="box">
+      <h3>📊 资源分配表</h3>
+      <div id="bankTableContainer" style="overflow-x:auto"><div style="color:var(--text2);font-size:.82rem">点击"初始化"生成表格</div></div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="box">
+      <h3>🔗 资源分配图</h3>
+      <canvas id="graphCanvas" class="graph-canvas" width="400" height="350"></canvas>
+    </div>
+    <div class="box">
+      <h3>✅ 安全序列</h3>
+      <div id="safeSeq" style="font-size:.9rem;color:var(--text2)">点击"查找安全序列"开始分析</div>
+    </div>
+    <div class="box"><h3>📜 日志</h3><div class="log" id="bankLog"></div></div>
+  </div>
+</div>
+</div>
+
+<!-- ============ SYNC PANEL ============ -->
+<div class="panel" id="panel-sync">
+<div class="row">
+  <div class="col">
+    <div class="box">
+      <h3>🏗️ 生产者-消费者模拟</h3>
+      <div style="display:flex;gap:.8rem;flex-wrap:wrap;align-items:end;margin-bottom:.8rem">
+        <div><label>缓冲区大小</label><br><input id="syncBufSize" type="number" value="5" min="2" max="10" style="width:60px"></div>
+        <div><label>生产者数量</label><br><input id="syncProducers" type="number" value="2" min="1" max="4" style="width:60px"></div>
+        <div><label>消费者数量</label><br><input id="syncConsumers" type="number" value="2" min="1" max="4" style="width:60px"></div>
+        <button class="btn btn-g" onclick="syncStart()">开始模拟</button>
+        <button class="btn btn-y" onclick="syncStep()">单步执行</button>
+        <button class="btn btn-r" onclick="syncReset()">重置</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col">
+    <div class="box">
+      <h3>📦 共享缓冲区</h3>
+      <div id="syncBuffer" style="display:flex;gap:.4rem;flex-wrap:wrap;margin:.5rem 0"></div>
+      <div style="font-size:.8rem;color:var(--text2);margin-top:.4rem">当前步骤: <span id="syncStep" style="color:var(--cyan);font-weight:700">0</span> | 操作: <span id="syncAction" style="color:var(--yellow)">等待开始</span></div>
+    </div>
+    <div class="box">
+      <h3>🔒 信号量状态</h3>
+      <div class="stats" id="syncSemaphores">
+        <div class="stat"><div class="sv" id="semMutex">1</div><div class="sl">mutex (互斥)</div></div>
+        <div class="stat"><div class="sv" id="semEmpty">-</div><div class="sl">empty (空闲)</div></div>
+        <div class="stat"><div class="sv" id="semFull">0</div><div class="sl">full (占用)</div></div>
+      </div>
+    </div>
+    <div class="box">
+      <h3>👥 进程状态</h3>
+      <div id="syncProcesses" style="display:flex;gap:.5rem;flex-wrap:wrap"></div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="box">
+      <h3>💬 消息传递模拟</h3>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem">
+        <input id="msgFrom" placeholder="发送进程" value="P1" style="width:80px">
+        <input id="msgTo" placeholder="接收进程" value="P2" style="width:80px">
+        <input id="msgContent" placeholder="消息内容" value="Hello" style="flex:1">
+        <button class="btn btn-p" onclick="msgSend()">发送</button>
+        <button class="btn btn-s" onclick="msgReceive()">接收</button>
+      </div>
+      <div id="msgQueue" style="display:flex;gap:.4rem;flex-wrap:wrap;min-height:40px;padding:.4rem;background:var(--bg);border:1px solid var(--border);border-radius:6px"></div>
+    </div>
+    <div class="box">
+      <h3>📜 操作日志</h3>
+      <div class="log" id="syncLog"></div>
+    </div>
+  </div>
+</div>
+</div>
+
+</div><!-- end main -->
+
+<script>
+// ===== TAB SWITCH =====
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+  t.classList.add('active');
+  document.getElementById('panel-' + t.dataset.tab).classList.add('active');
+}));
+
+// ===== UTILITIES =====
+const $=id=>document.getElementById(id);
+function addLog(elId, msg){const el=$(elId);const d=new Date();const ts=`[${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')}]`;el.innerHTML+=`<div>${ts} ${msg}</div>`;el.scrollTop=el.scrollHeight;}
+const COLORS=['#6366f1','#3b82f6','#06b6d4','#10b981','#f59e0b','#ef4444','#ec4899','#8b5cf6'];
+
+// ===== DISK MODULE =====
+const DISK_SIZE=1024, BLOCK_SIZE=64;
+let diskBlocks=new Array(DISK_SIZE).fill(null); // null=free, {type:'dir'|'meta'|'data',file:string}
+let files=[]; // {name,owner,time,start,size,perm,content:[]}
+let freeAreas=[]; // [{start,count}]
+
+function diskInit(){
+  // Reserve first 24 blocks for directory/metadata
+  for(let i=0;i<8;i++) diskBlocks[i]={type:'dir',file:'MFD'};
+  for(let i=8;i<16;i++) diskBlocks[i]={type:'dir',file:'UFD'};
+  for(let i=16;i<24;i++) diskBlocks[i]={type:'meta',file:'FreeTable'};
+  files=[];
+  bufPages=new Array(BUF_SIZE).fill(null);
+  bufAccessCounter=0;bufWritebacks=0;
+  updateFreeAreas();
+  diskRender();bufRender();
+  addLog('diskLog','磁盘初始化完成，1024个盘块就绪');
+}
+
+function updateFreeAreas(){
+  freeAreas=[];
+  let start=-1,cnt=0;
+  for(let i=0;i<DISK_SIZE;i++){
+    if(diskBlocks[i]===null){if(start===-1){start=i;cnt=1}else cnt++}
+    else{if(start!==-1){freeAreas.push({start,count:cnt});start=-1;cnt=0}}
+  }
+  if(start!==-1) freeAreas.push({start,count:cnt});
+}
+
+function diskRender(){
+  const grid=$('diskGrid');
+  let html='';
+  for(let i=0;i<DISK_SIZE;i++){
+    const b=diskBlocks[i];
+    let cls='cell-free',tip=`块${i} 空闲`;
+    if(b){
+      if(b.type==='dir'){cls='cell-dir';tip=`块${i} ${b.file}`;}
+      else if(b.type==='meta'){cls='cell-meta';tip=`块${i} ${b.file}`;}
+      else{cls='cell-data';tip=`块${i} ${b.file}`;}
+    }
+    html+=`<div class="disk-cell ${cls}" data-tip="${tip}" style="${b&&b.type==='data'?`background:${COLORS[b.file.charCodeAt(0)%COLORS.length]}`:''}"></div>`;
+  }
+  grid.innerHTML=html;
+  // dir tree
+  const users={};
+  files.forEach(f=>{if(!users[f.owner])users[f.owner]=[];users[f.owner].push(f)});
+  let tree='<div class="dir-node"><span class="dir-folder">📁 / (root)</span></div>';
+  for(const u in users){
+    tree+=`<div class="dir-node" style="padding-left:1.2rem"><span class="dir-folder">📁 ${u}</span></div>`;
+    users[u].forEach(f=>{const inUseTag=fileInUse===f.name?'<span class="in-use-badge">使用中</span>':'';tree+=`<div class="dir-node" style="padding-left:2.4rem"><span class="dir-file" onclick="diskSelectFile('${f.name}')">📄 ${f.name} (${f.size}块)</span>${inUseTag}</div>`});
+  }
+  $('dirTree').innerHTML=tree;
+  // file table
+  let tb='';
+  files.forEach(f=>{const inUseBadge=fileInUse===f.name?'<span class="in-use-badge">使用中</span>':'';tb+=`<tr><td>${f.name}${inUseBadge}</td><td>${f.owner}</td><td>${f.time}</td><td>${f.start}</td><td>${f.size}</td><td>${f.perm}</td></tr>`});
+  $('fileTable').querySelector('tbody').innerHTML=tb;
+  // free list
+  let fl='';
+  freeAreas.forEach(a=>{fl+=`<div>起始块 <b>${a.start}</b> → 连续 <b>${a.count}</b> 块空闲</div>`});
+  $('freeList').innerHTML=fl||'<div>无空闲盘区</div>';
+}
+
+let selectedFile=null;
+let fileInUse=null; // file protection: name of file currently being viewed/edited
+
+// ===== BUFFER PAGE SYSTEM =====
+const BUF_SIZE=8; // K=8 buffer pages
+let bufPages=new Array(BUF_SIZE).fill(null); // {blockIdx, owner, content, accessTime, dirty}
+let bufAccessCounter=0;
+let bufWritebacks=0;
+
+function bufRender(){
+  const el=$('bufPages');let html='';
+  let usedCount=0;
+  bufPages.forEach((p,i)=>{
+    if(p){
+      usedCount++;
+      html+=`<div class="buf-page loaded" id="bp${i}"><span class="bpid">块${p.blockIdx}</span><span class="bpowner">${p.owner}</span>${p.dirty?'<span class="bpdirty">D</span>':''}<span class="bptime">t=${p.accessTime}</span></div>`;
+    } else {
+      html+=`<div class="buf-page empty" id="bp${i}"><span class="bpid">空</span></div>`;
+    }
+  });
+  el.innerHTML=html;
+  $('bufStatus').textContent=usedCount+'/'+BUF_SIZE+' 已用';
+  $('bufWritebacks').textContent=bufWritebacks;
+}
+
+function bufLoadBlock(blockIdx, owner, content){
+  // Check if already in buffer
+  let idx=bufPages.findIndex(p=>p&&p.blockIdx===blockIdx&&p.owner===owner);
+  if(idx!==-1){
+    bufAccessCounter++;
+    bufPages[idx].accessTime=bufAccessCounter;
+    return idx;
+  }
+  // Find empty slot
+  idx=bufPages.findIndex(p=>p===null);
+  if(idx===-1){
+    // LRU eviction
+    let lruTime=Infinity,lruIdx=0;
+    bufPages.forEach((p,i)=>{if(p.accessTime<lruTime){lruTime=p.accessTime;lruIdx=i}});
+    const old=bufPages[lruIdx];
+    // Animate eviction
+    const evictEl=$('bp'+lruIdx);
+    if(evictEl) evictEl.classList.add('evict');
+    if(old.dirty){
+      bufWritebacks++;
+      addLog('diskLog',`<span style="color:var(--yellow)">↩ 脏页写回磁盘: 块${old.blockIdx}(${old.owner})</span>`);
+      if(evictEl){evictEl.classList.remove('evict');evictEl.classList.add('writeback')}
+    } else {
+      addLog('diskLog',`<span style="color:var(--text2)">✗ LRU置换: 丢弃块${old.blockIdx}(${old.owner})</span>`);
+    }
+    idx=lruIdx;
+  }
+  bufAccessCounter++;
+  bufPages[idx]={blockIdx,owner,content,accessTime:bufAccessCounter,dirty:false};
+  return idx;
+}
+
+async function bufLoadFileAnimated(file, callback){
+  // Load file blocks into buffer one by one with animation
+  const totalBlocks=file.size;
+  addLog('diskLog',`<span style="color:var(--cyan)">⏳ 加载 ${file.name} 到缓冲区 (${totalBlocks}块)...</span>`);
+  for(let i=0;i<totalBlocks;i++){
+    const blockIdx=file.start+i;
+    const content=i<file.content.length?file.content[i]:'';
+    // Highlight disk cell
+    const cells=document.querySelectorAll('.disk-cell');
+    if(cells[blockIdx]){
+      cells[blockIdx].classList.add('reading');
+      setTimeout(()=>cells[blockIdx].classList.remove('reading'),500);
+    }
+    bufLoadBlock(blockIdx, file.name, content);
+    bufRender();
+    await new Promise(r=>setTimeout(r,300));
+  }
+  addLog('diskLog',`<span style="color:var(--green)">✓ ${file.name} 全部加载到缓冲区</span>`);
+  if(callback) callback();
+}
+
+function diskSelectFile(name){
+  selectedFile=name;
+  addLog('diskLog',`选中文件: <b style="color:var(--cyan)">${name}</b>`);
+}
+
+function diskCreateFile(){
+  const name=$('newFileName').value.trim()||('file'+(files.length+1));
+  const owner=$('newFileOwner').value.trim()||'user1';
+  const rawContent=$('newFileContent').value;
+  if(files.find(f=>f.name===name)){addLog('diskLog',`<span style="color:var(--red)">错误: 文件 ${name} 已存在</span>`);return}
+  // Split content into 64B blocks
+  let contentBlocks=[];
+  if(rawContent){
+    for(let i=0;i<rawContent.length;i+=BLOCK_SIZE){
+      contentBlocks.push(rawContent.substring(i,i+BLOCK_SIZE));
+    }
+  }
+  const size=Math.max(parseInt($('newFileSize').value)||5, contentBlocks.length||1);
+  // Find contiguous free space
+  let start=-1;
+  for(const a of freeAreas){if(a.count>=size){start=a.start;break}}
+  if(start===-1){addLog('diskLog',`<span style="color:var(--red)">错误: 无足够连续空闲空间 (需要${size}块)</span>`);return}
+  for(let i=start;i<start+size;i++){
+    const blockIdx=i-start;
+    diskBlocks[i]={type:'data',file:name,content:blockIdx<contentBlocks.length?contentBlocks[blockIdx]:''};
+  }
+  const now=new Date();
+  const time=`${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}`;
+  files.push({name,owner,time,start,size,perm:'rw-r--r--',content:contentBlocks});
+  updateFreeAreas();diskRender();
+  addLog('diskLog',`<span style="color:var(--green)">✓ 创建文件 ${name}，分配块 ${start}~${start+size-1}${rawContent?' ('+contentBlocks.length+'块含内容)':''}</span>`);
+  $('newFileName').value='';$('newFileContent').value='';
+}
+
+function diskDeleteFile(){
+  const name=selectedFile||$('newFileName').value.trim();
+  if(!name){addLog('diskLog','<span style="color:var(--red)">请先选择或输入文件名</span>');return}
+  // File protection: check if file is in use
+  if(fileInUse===name){
+    addLog('diskLog',`<span style="color:var(--red)">⛔ 删除被阻止: 文件 ${name} 正在使用中，请先关闭查看/编辑后再删除</span>`);
+    return;
+  }
+  const idx=files.findIndex(f=>f.name===name);
+  if(idx===-1){addLog('diskLog',`<span style="color:var(--red)">文件 ${name} 不存在</span>`);return}
+  const f=files[idx];
+  for(let i=f.start;i<f.start+f.size;i++) diskBlocks[i]=null;
+  // Also remove from buffer
+  bufPages.forEach((p,bi)=>{if(p&&p.owner===name){bufPages[bi]=null}});
+  bufRender();
+  files.splice(idx,1);selectedFile=null;
+  updateFreeAreas();diskRender();
+  addLog('diskLog',`<span style="color:var(--yellow)">🗑 已删除文件 ${name}，释放块 ${f.start}~${f.start+f.size-1}</span>`);
+}
+
+function diskViewFile(){
+  const name=selectedFile||$('newFileName').value.trim();
+  if(!name){addLog('diskLog','请先选择文件');return}
+  const f=files.find(x=>x.name===name);
+  if(!f){addLog('diskLog',`文件 ${name} 不存在`);return}
+  fileInUse=name; // file protection
+  diskRender(); // re-render to show in-use badge
+  const el=$('fileContent');el.style.display='block';
+  let info=`<div style="margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem"><b style="color:var(--cyan)">${f.name}</b> — 物理块 ${f.start}~${f.start+f.size-1} | 所属: ${f.owner} | 权限: ${f.perm}<span class="in-use-badge">使用中</span><button class="btn btn-s" style="margin-left:auto;padding:.2rem .6rem;font-size:.7rem" onclick="closeFileView()">关闭</button></div>`;
+  const hasContent=f.content&&f.content.some(c=>c.length>0);
+  if(hasContent){
+    info+='<div style="border-top:1px solid var(--border);padding-top:.5rem">';
+    for(let i=0;i<f.size;i++){
+      const blockIdx=i;
+      const content=blockIdx<f.content.length?f.content[blockIdx]:'';
+      const hexAddr=(f.start+i).toString(16).toUpperCase().padStart(4,'0');
+      if(content){
+        info+=`<div style="margin-bottom:.3rem;padding:.3rem .5rem;background:var(--bg2);border-radius:4px;border-left:3px solid var(--blue)">`;
+        info+=`<span style="color:var(--yellow);font-size:.7rem">块${f.start+i} [0x${hexAddr}]</span><br>`;
+        info+=`<span style="color:var(--text);word-break:break-all">${content.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span></div>`;
+      } else {
+        info+=`<div style="margin-bottom:.3rem;padding:.3rem .5rem;background:var(--bg2);border-radius:4px;border-left:3px solid rgba(255,255,255,.1)">`;
+        info+=`<span style="color:var(--yellow);font-size:.7rem">块${f.start+i} [0x${hexAddr}]</span><br>`;
+        info+=`<span style="color:var(--text2)">(空)</span></div>`;
+      }
+    }
+    info+='</div>';
+  } else {
+    info+=`<span style="color:var(--text2)">该文件未写入内容（${f.size} 个空物理块）</span>`;
+  }
+  el.innerHTML=info;
+  addLog('diskLog',`查看文件 ${name} 的 ${f.size} 个盘块`);
+  // Animate loading into buffer
+  bufLoadFileAnimated(f);
+}
+
+function closeFileView(){
+  fileInUse=null;
+  $('fileContent').style.display='none';
+  $('fileContent').innerHTML='';
+  diskRender();
+  addLog('diskLog','<span style="color:var(--text2)">已关闭文件查看，解除文件保护</span>');
+}
+
+function diskEditFile(){
+  const name=selectedFile||$('newFileName').value.trim();
+  if(!name){addLog('diskLog','请先选择文件');return}
+  const f=files.find(x=>x.name===name);
+  if(!f){addLog('diskLog',`文件 ${name} 不存在`);return}
+  fileInUse=name; // file protection
+  diskRender();
+  // Mark buffer pages as dirty for edited blocks
+  bufPages.forEach(p=>{if(p&&p.owner===name) p.dirty=true});
+  bufRender();
+  const el=$('fileContent');el.style.display='block';
+  let form=`<div style="margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem"><b style="color:var(--cyan)">修改 ${f.name}</b> — 按块编辑内容<span class="in-use-badge">使用中</span><button class="btn btn-s" style="margin-left:auto;padding:.2rem .6rem;font-size:.7rem" onclick="closeFileView()">关闭</button></div>`;
+  for(let i=0;i<f.size;i++){
+    const content=i<f.content.length?f.content[i]:'';
+    form+=`<div style="margin-bottom:.3rem;display:flex;gap:.4rem;align-items:start">`;
+    form+=`<span style="color:var(--yellow);font-size:.7rem;min-width:50px;padding-top:.3rem">块${f.start+i}</span>`;
+    form+=`<textarea id="editBlock${i}" rows="2" style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:.25rem .4rem;color:var(--text);font-size:.78rem;resize:none;outline:none">${content.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea></div>`;
+  }
+  form+=`<button class="btn btn-g" style="margin-top:.5rem" onclick="diskSaveEdit('${name}')">保存修改</button>`;
+  el.innerHTML=form;
+  addLog('diskLog',`编辑文件 ${name} 的盘块内容`);
+  bufLoadFileAnimated(f);
+}
+
+function diskSaveEdit(name){
+  const f=files.find(x=>x.name===name);
+  if(!f)return;
+  for(let i=0;i<f.size;i++){
+    const ta=$('editBlock'+i);
+    if(ta){
+      if(!f.content)f.content=[];
+      f.content[i]=ta.value;
+      // Update disk block content
+      const blockIdx=f.start+i;
+      if(diskBlocks[blockIdx]) diskBlocks[blockIdx].content=ta.value;
+    }
+  }
+  addLog('diskLog',`<span style="color:var(--green)">✓ 文件 ${name} 的内容已保存 (${f.size}块)</span>`);
+  diskViewFile();
+}
+
+diskInit();
+
+// ===== PAGE REPLACEMENT MODULE =====
+let pageSeq=[], pageMemory=[], pageIndex=0, pageHits=0, pageFaults=0, pageReplaces=0;
+let pageAccessInfo=[]; // {page, hit, replaced}
+let pageFifoQueue=[]; // FIFO queue
+let pageClockHand=0; // CLOCK hand position
+let pageLoadOrder=[]; // track load order for FIFO
+
+function pageGenerate(){
+  const len=parseInt($('pageSeqLen').value)||20;
+  const range=parseInt($('pageRange').value)||10;
+  pageSeq=[];for(let i=0;i<len;i++) pageSeq.push(Math.floor(Math.random()*range));
+  pageReset();
+  let html='';
+  pageSeq.forEach((p,i)=>{html+=`<span id="ps${i}" style="display:inline-block;padding:.2rem .5rem;border-radius:5px;background:var(--bg2);border:1px solid var(--border);font-size:.82rem;font-weight:600;transition:all .3s">${p}</span>`});
+  $('pageSeq').innerHTML=html;
+  addLog('pageLog',`生成访问序列: [${pageSeq.join(', ')}]`);
+}
+
+function pageReset(){
+  pageIndex=0;pageHits=0;pageFaults=0;pageReplaces=0;pageAccessInfo=[];
+  pageFifoQueue=[];pageClockHand=0;pageLoadOrder=[];
+  const k=parseInt($('pageFrames').value)||4;
+  pageMemory=new Array(k).fill(null); // {pageId, lastAccess, accessCount, dirty, refBit}
+  pageRenderFrames(null);
+  $('pageCurrent').textContent='-';$('pageStepNum').textContent='0';
+  $('statHit').textContent='0';$('statFault').textContent='0';$('statRate').textContent='0%';$('statReplace').textContent='0';
+}
+
+function pageRenderFrames(highlightIdx, isHit){
+  let html='';
+  pageMemory.forEach((f,i)=>{
+    let cls='';
+    if(i===highlightIdx) cls=isHit?'hit':'fault';
+    if(f) html+=`<div class="frame ${cls}"><span class="fid">${f.pageId}</span><span class="finfo">访问:${f.lastAccess}</span>${f.dirty?'<span class="dirty">D</span>':''}</div>`;
+    else html+=`<div class="frame ${cls}"><span class="fid" style="color:var(--text2)">空</span></div>`;
+  });
+  $('memFrames').innerHTML=html;
+}
+
+function pageStep(){
+  if(pageSeq.length===0){addLog('pageLog','请先生成访问序列');return}
+  if(pageIndex>=pageSeq.length){addLog('pageLog','序列已全部访问完毕');return}
+  const pid=pageSeq[pageIndex];
+  $('pageCurrent').textContent=pid;
+  $('pageStepNum').textContent=pageIndex+1;
+  // highlight in sequence
+  pageSeq.forEach((_,i)=>{const el=$('ps'+i);if(el){el.style.background=i===pageIndex?'var(--accent)':'var(--bg2)';el.style.color=i===pageIndex?'#fff':'var(--text)'}});
+  const fi=pageMemory.findIndex(f=>f&&f.pageId===pid);
+  if(fi!==-1){
+    // HIT
+    pageHits++;
+    pageMemory[fi].lastAccess=pageIndex;
+    pageMemory[fi].accessCount=(pageMemory[fi].accessCount||0)+1;
+    if($('pageAlgo').value==='clock') pageMemory[fi].refBit=1;
+    pageRenderFrames(fi,true);
+    addLog('pageLog',`<span style="color:var(--green)">✓ 命中</span> 页面 ${pid} (帧${fi})`);
+  } else {
+    // FAULT
+    pageFaults++;
+    const algo=$('pageAlgo').value;
+    const emptyIdx=pageMemory.findIndex(f=>f===null);
+    if(emptyIdx!==-1){
+      pageMemory[emptyIdx]={pageId:pid,lastAccess:pageIndex,accessCount:1,dirty:Math.random()>.7,refBit:1};
+      if(algo==='fifo') pageFifoQueue.push(emptyIdx);
+      pageRenderFrames(emptyIdx,false);
+      addLog('pageLog',`<span style="color:var(--red)">✗ 缺页</span> 页面 ${pid} 装入空帧 ${emptyIdx}`);
+    } else {
+      // Find victim based on algorithm
+      let victimIdx=-1;
+      if(algo==='lru'){
+        let lruTime=Infinity;
+        pageMemory.forEach((f,i)=>{if(f.lastAccess<lruTime){lruTime=f.lastAccess;victimIdx=i}});
+      } else if(algo==='fifo'){
+        victimIdx=pageFifoQueue.shift();
+      } else if(algo==='opt'){
+        // Find page that won't be used for the longest time
+        let farthest=-1;
+        pageMemory.forEach((f,i)=>{
+          let nextUse=Infinity;
+          for(let k=pageIndex+1;k<pageSeq.length;k++){if(pageSeq[k]===f.pageId){nextUse=k;break}}
+          if(nextUse>farthest){farthest=nextUse;victimIdx=i}
+        });
+      } else if(algo==='lfu'){
+        let minCount=Infinity;
+        pageMemory.forEach((f,i)=>{if(f.accessCount<minCount){minCount=f.accessCount;victimIdx=i}});
+      } else if(algo==='clock'){
+        // CLOCK: sweep until finding a frame with refBit=0
+        let sweeps=0;
+        while(sweeps<pageMemory.length*2){
+          const f=pageMemory[pageClockHand];
+          if(f&&f.refBit===0){victimIdx=pageClockHand;pageClockHand=(pageClockHand+1)%pageMemory.length;break}
+          if(f) f.refBit=0;
+          pageClockHand=(pageClockHand+1)%pageMemory.length;
+          sweeps++;
+        }
+        if(victimIdx===-1) victimIdx=0;
+      }
+      const old=pageMemory[victimIdx];
+      pageReplaces++;
+      const algoNames={lru:'LRU',fifo:'FIFO',opt:'OPT',lfu:'LFU',clock:'CLOCK'};
+      const dirtyMsg=old.dirty?' <span style="color:var(--yellow)">(脏页写回磁盘)</span>':'';
+      addLog('pageLog',`<span style="color:var(--red)">✗ ${algoNames[algo]}置换</span> 页面${old.pageId}(帧${victimIdx}) → 页面${pid}${dirtyMsg}`);
+      pageMemory[victimIdx]={pageId:pid,lastAccess:pageIndex,accessCount:1,dirty:Math.random()>.7,refBit:1};
+      if(algo==='fifo') pageFifoQueue.push(victimIdx);
+      pageRenderFrames(victimIdx,false);
+    }
+  }
+  pageIndex++;
+  const total=pageHits+pageFaults;
+  $('statHit').textContent=pageHits;$('statFault').textContent=pageFaults;
+  $('statRate').textContent=total?((pageHits/total*100).toFixed(1)+'%'):'0%';$('statReplace').textContent=pageReplaces;
+}
+
+function pageRunAll(){
+  if(pageSeq.length===0){pageGenerate();if(pageSeq.length===0)return}
+  pageReset();
+  // re-render sequence
+  let html='';pageSeq.forEach((p,i)=>{html+=`<span id="ps${i}" style="display:inline-block;padding:.2rem .5rem;border-radius:5px;background:var(--bg2);border:1px solid var(--border);font-size:.82rem;font-weight:600;transition:all .3s">${p}</span>`});
+  $('pageSeq').innerHTML=html;
+  let i=0;
+  const iv=setInterval(()=>{if(i>=pageSeq.length){clearInterval(iv);addLog('pageLog','<b style="color:var(--green)">自动执行完毕</b>');return}pageStep();i++},300);
+}
+
+// ===== SCHEDULING MODULE =====
+let schedProcs=[]; // {name,arrival,burst,priority,state,waitTime,turnTime,startTimes:[]}
+let schedProcId=0;
+
+$('schedAlgo').addEventListener('change',()=>{$('rrQuantumBox').style.display=$('schedAlgo').value==='rr'?'block':'none'});
+
+function schedAddProcess(name,arrival,burst,priority){
+  schedProcId++;
+  const p={name:name||'P'+schedProcId,arrival:arrival??Math.floor(Math.random()*5),burst:burst??(1+Math.floor(Math.random()*8)),priority:priority??(1+Math.floor(Math.random()*5)),state:'ready',waitTime:0,turnTime:0,remaining:0};
+  p.remaining=p.burst;
+  schedProcs.push(p);
+  schedRenderTable();
+  addLog('schedLog',`添加进程 ${p.name} (到达:${p.arrival} 执行:${p.burst} 优先级:${p.priority})`);
+}
+
+function schedRandom(){
+  schedProcs=[];schedProcId=0;
+  const n=4+Math.floor(Math.random()*4);
+  for(let i=0;i<n;i++) schedAddProcess();
+}
+
+function schedRenderTable(){
+  let tb='';
+  schedProcs.forEach(p=>{
+    const sc=p.state==='running'?'color:var(--green)':p.state==='done'?'color:var(--text2)':'';
+    tb+=`<tr><td>${p.name}</td><td>${p.arrival}</td><td>${p.burst}</td><td>${p.priority}</td><td style="${sc}">${p.state==='ready'?'就绪':p.state==='running'?'运行':p.state==='done'?'完成':p.state}</td></tr>`;
+  });
+  $('schedTable').querySelector('tbody').innerHTML=tb;
+  // proc nodes
+  let nodes='';
+  schedProcs.forEach(p=>{nodes+=`<div class="proc-node ${p.state}">${p.name}<br><span style="font-size:.7rem;color:var(--text2)">${p.state==='done'?'✓':('剩余:'+p.remaining)}</span></div>`});
+  $('procNodes').innerHTML=nodes;
+}
+
+function schedReset(){
+  schedProcs=[];schedProcId=0;
+  $('schedTable').querySelector('tbody').innerHTML='';
+  $('procNodes').innerHTML='';
+  $('ganttContainer').innerHTML='<div style="color:var(--text2);font-size:.82rem">点击"执行调度"查看甘特图</div>';
+  $('schedAvgWait').textContent='-';$('schedAvgTurn').textContent='-';$('schedAvgWTurn').textContent='-';
+  $('schedLog').innerHTML='';
+}
+
+function schedRun(){
+  if(schedProcs.length===0){addLog('schedLog','请先添加进程');return}
+  // Reset states
+  schedProcs.forEach(p=>{p.state='ready';p.remaining=p.burst;p.waitTime=0;p.turnTime=0});
+  const algo=$('schedAlgo').value;
+  const quantum=parseInt($('rrQuantum').value)||2;
+  let gantt=[]; // {name,color,time}
+  let time=0;
+  const procs=[...schedProcs].sort((a,b)=>a.arrival-b.arrival);
+  const colors={};procs.forEach((p,i)=>{colors[p.name]=COLORS[i%COLORS.length]});
+
+  if(algo==='fcfs'){
+    let t=0;
+    procs.forEach(p=>{
+      if(t<p.arrival){gantt.push({name:'空闲',color:'#333',time:p.arrival-t});t=p.arrival}
+      p.state='running';gantt.push({name:p.name,color:colors[p.name],time:p.burst});
+      p.waitTime=t-p.arrival;p.turnTime=t+p.burst-p.arrival;t+=p.burst;p.state='done';
+    });
+    time=t;
+  } else if(algo==='sjf'){
+    let t=0,done=[],remaining=[...procs];
+    while(remaining.length){
+      const avail=remaining.filter(p=>p.arrival<=t);
+      if(avail.length===0){gantt.push({name:'空闲',color:'#333',time:1});t++;continue}
+      avail.sort((a,b)=>a.burst-b.burst);
+      const p=avail[0];remaining.splice(remaining.indexOf(p),1);
+      if(t<p.arrival){gantt.push({name:'空闲',color:'#333',time:p.arrival-t});t=p.arrival}
+      p.state='running';gantt.push({name:p.name,color:colors[p.name],time:p.burst});
+      p.waitTime=t-p.arrival;p.turnTime=t+p.burst-p.arrival;t+=p.burst;p.state='done';
+    }
+    time=t;
+  } else if(algo==='rr'){
+    let t=0,queue=[],idx=0;const sorted=[...procs].sort((a,b)=>a.arrival-b.arrival);
+    while(idx<sorted.length||queue.length){
+      while(idx<sorted.length&&sorted[idx].arrival<=t){queue.push(sorted[idx]);idx++}
+      if(queue.length===0){gantt.push({name:'空闲',color:'#333',time:1});t++;continue}
+      const p=queue.shift();const exec=Math.min(quantum,p.remaining);
+      p.state='running';gantt.push({name:p.name,color:colors[p.name],time:exec});
+      t+=exec;p.remaining-=exec;
+      while(idx<sorted.length&&sorted[idx].arrival<=t){queue.push(sorted[idx]);idx++}
+      if(p.remaining>0){queue.push(p);p.state='ready'}else{p.state='done';p.turnTime=t-p.arrival;p.waitTime=p.turnTime-p.burst}
+    }
+    time=t;
+  } else if(algo==='priority'){
+    let t=0,remaining=[...procs];
+    while(remaining.length){
+      const avail=remaining.filter(p=>p.arrival<=t);
+      if(avail.length===0){gantt.push({name:'空闲',color:'#333',time:1});t++;continue}
+      avail.sort((a,b)=>a.priority-b.priority);
+      const p=avail[0];remaining.splice(remaining.indexOf(p),1);
+      if(t<p.arrival){gantt.push({name:'空闲',color:'#333',time:p.arrival-t});t=p.arrival}
+      p.state='running';gantt.push({name:p.name,color:colors[p.name],time:p.burst});
+      p.waitTime=t-p.arrival;p.turnTime=t+p.burst-p.arrival;t+=p.burst;p.state='done';
+    }
+    time=t;
+  }
+
+  // Render Gantt
+  let gHtml='<div class="gantt">';
+  gantt.forEach(g=>{const w=(g.time/time*100).toFixed(1);gHtml+=`<div class="gantt-block" style="width:${w}%;background:${g.color}" title="${g.name} ${g.time}单位">${g.time>1?g.name:''}</div>`});
+  gHtml+='</div><div class="gantt-labels">';
+  let cum=0;gantt.forEach(g=>{const w=(g.time/time*100).toFixed(1);gHtml+=`<span style="width:${w}%">${cum}</span>`;cum+=g.time});
+  gHtml+=`<span style="width:0">${cum}</span></div>`;
+  $('ganttContainer').innerHTML=gHtml;
+
+  // Stats
+  const n=schedProcs.length;
+  const avgW=(schedProcs.reduce((s,p)=>s+p.waitTime,0)/n).toFixed(2);
+  const avgT=(schedProcs.reduce((s,p)=>s+p.turnTime,0)/n).toFixed(2);
+  const avgWT=(schedProcs.reduce((s,p)=>s+p.turnTime/p.burst,0)/n).toFixed(2);
+  $('schedAvgWait').textContent=avgW;$('schedAvgTurn').textContent=avgT;$('schedAvgWTurn').textContent=avgWT;
+  schedRenderTable();
+  addLog('schedLog',`<span style="color:var(--green)">调度完成</span> 算法:${algo.toUpperCase()} 平均等待:${avgW} 平均周转:${avgT}`);
+}
+
+// ===== DEADLOCK / BANKER MODULE =====
+let bankData=null; // {procs,resources,max,alloc,need,avail}
+
+function bankInit(){
+  const np=parseInt($('bankProc').value)||5;
+  const nr=parseInt($('bankRes').value)||3;
+  const rnames=[];for(let i=0;i<nr;i++) rnames.push(String.fromCharCode(65+i));
+  // Generate random data
+  const max=[],alloc=[];
+  for(let i=0;i<np;i++){
+    const mrow=[],arow=[];
+    for(let j=0;j<nr;j++){const m=1+Math.floor(Math.random()*7);mrow.push(m);arow.push(Math.floor(Math.random()*m))}
+    max.push(mrow);alloc.push(arow);
+  }
+  const availStr=$('bankAvail').value.trim();
+  let avail;
+  if(availStr){avail=availStr.split(/\s+/).map(Number)}
+  else{avail=[];for(let j=0;j<nr;j++){let total=0;alloc.forEach(r=>total+=r[j]);avail.push(total+Math.floor(Math.random()*5)+1)}}
+  const need=max.map((r,i)=>r.map((v,j)=>v-alloc[i][j]));
+  bankData={np,nr,rnames,max,alloc,need,avail};
+  bankRenderTable();
+  addLog('bankLog','银行家算法数据初始化完成');
+}
+
+function bankRandom(){
+  $('bankAvail').value='';
+  bankInit();
+}
+
+function bankRenderTable(){
+  if(!bankData)return;
+  const{np,nr,rnames,max,alloc,need,avail}=bankData;
+  let html='<table class="btable"><thead><tr><th>进程</th>';
+  rnames.forEach(r=>{html+=`<th>Max_${r}</th>`});
+  rnames.forEach(r=>{html+=`<th>Alloc_${r}</th>`});
+  rnames.forEach(r=>{html+=`<th>Need_${r}</th>`});
+  html+='</tr></thead><tbody>';
+  for(let i=0;i<np;i++){
+    html+=`<tr><td>P${i}</td>`;
+    max[i].forEach(v=>{html+=`<td>${v}</td>`});
+    alloc[i].forEach(v=>{html+=`<td>${v}</td>`});
+    need[i].forEach(v=>{html+=`<td>${v}</td>`});
+    html+='</tr>';
+  }
+  html+=`<tr style="font-weight:700"><td>Available</td>`;
+  avail.forEach(v=>{html+=`<td colspan="1" style="color:var(--cyan)">${v}</td>`});
+  for(let i=0;i<nr*2-1;i++) html+='<td></td>';
+  html+='</tr></tbody></table>';
+  $('bankTableContainer').innerHTML=html;
+  bankDrawGraph();
+}
+
+function bankFindSafe(){
+  if(!bankData){addLog('bankLog','请先初始化数据');return}
+  const{np,nr,need,alloc}=bankData;
+  let avail=[...bankData.avail];
+  const finish=new Array(np).fill(false);
+  const safeSeq=[];
+  let changed=true;
+  const steps=[];
+  while(changed){
+    changed=false;
+    for(let i=0;i<np;i++){
+      if(finish[i])continue;
+      let ok=true;
+      for(let j=0;j<nr;j++){if(need[i][j]>avail[j]){ok=false;break}}
+      if(ok){
+        for(let j=0;j<nr;j++) avail[j]+=alloc[i][j];
+        finish[i]=true;safeSeq.push(i);changed=true;
+        steps.push(`P${i} 可执行，释放资源 → Available=[${avail.join(',')}]`);
+      }
+    }
+  }
+  const allDone=finish.every(f=>f);
+  const el=$('safeSeq');
+  if(allDone){
+    el.innerHTML=`<span style="color:var(--green);font-weight:700">✓ 系统安全！</span><br>安全序列: ${safeSeq.map(i=>'P'+i).join(' → ')}`;
+    addLog('bankLog',`<span style="color:var(--green)">安全序列: ${safeSeq.map(i=>'P'+i).join(' → ')}</span>`);
+  }else{
+    el.innerHTML=`<span style="color:var(--red);font-weight:700">✗ 系统不安全！存在死锁风险</span>`;
+    addLog('bankLog','<span style="color:var(--red)">系统不安全，存在死锁</span>');
+  }
+  steps.forEach(s=>addLog('bankLog',s));
+  // Highlight safe sequence in table
+  if(allDone){
+    const rows=$('bankTableContainer').querySelectorAll('tbody tr');
+    safeSeq.forEach((pi,idx)=>{
+      setTimeout(()=>{if(rows[pi])rows[pi].classList.add('safe')},idx*200);
+    });
+  }
+  bankDrawGraph(safeSeq);
+}
+
+function bankDrawGraph(safeSeq){
+  if(!bankData)return;
+  const canvas=$('graphCanvas');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const{np,nr,alloc,need,rnames}=bankData;
+  // Position processes on left, resources on right
+  const pNodes=[],rNodes=[];
+  const px=80,rx=W-80;
+  for(let i=0;i<np;i++){const y=40+i*(H-80)/(Math.max(np-1,1));pNodes.push({x:px,y,name:'P'+i,color:safeSeq&&safeSeq.includes(i)?'#10b981':'#6366f1'})}
+  for(let i=0;i<nr;i++){const y=60+i*(H-120)/(Math.max(nr-1,1));rNodes.push({x:rx,y,name:rnames[i],color:'#f59e0b'})}
+  // Draw edges
+  ctx.lineWidth=2;
+  for(let i=0;i<np;i++){
+    for(let j=0;j<nr;j++){
+      if(alloc[i][j]>0){
+        // R -> P (allocation)
+        ctx.strokeStyle='rgba(99,102,241,.6)';ctx.setLineDash([]);
+        ctx.beginPath();ctx.moveTo(rNodes[j].x-18,rNodes[j].y);ctx.lineTo(pNodes[i].x+18,pNodes[i].y);ctx.stroke();
+      }
+      if(need[i][j]>0){
+        // P -> R (request)
+        ctx.strokeStyle='rgba(239,68,68,.5)';ctx.setLineDash([4,4]);
+        ctx.beginPath();ctx.moveTo(pNodes[i].x+18,pNodes[i].y);ctx.lineTo(rNodes[j].x-18,rNodes[j].y);ctx.stroke();
+      }
+    }
+  }
+  ctx.setLineDash([]);
+  // Draw nodes
+  pNodes.forEach(n=>{
+    ctx.fillStyle=n.color;ctx.beginPath();ctx.arc(n.x,n.y,18,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font='bold 12px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(n.name,n.x,n.y);
+  });
+  rNodes.forEach(n=>{
+    ctx.fillStyle=n.color;ctx.fillRect(n.x-16,n.y-16,32,32);
+    ctx.fillStyle='#fff';ctx.font='bold 13px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(n.name,n.x,n.y);
+  });
+  // Legend
+  ctx.font='11px sans-serif';ctx.textAlign='left';
+  ctx.fillStyle='rgba(99,102,241,.8)';ctx.fillRect(10,H-40,30,2);ctx.fillText('分配边 (R→P)',46,H-36);
+  ctx.fillStyle='rgba(239,68,68,.8)';ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(10,H-20);ctx.lineTo(40,H-20);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='rgba(239,68,68,.8)';ctx.fillText('请求边 (P→R)',46,H-16);
+}
+
+// Init deadlock graph placeholder
+(function(){const c=$('graphCanvas'),x=c.getContext('2d');x.fillStyle='#94a3b8';x.font='14px sans-serif';x.textAlign='center';x.fillText('点击"初始化"查看资源分配图',c.width/2,c.height/2)})();
+
+// ===== SYNC & COMMUNICATION MODULE =====
+let syncState={buffer:[],mutex:1,empty:0,full:0,bufSize:5,step:0,running:false,iv:null};
+let syncProcs=[]; // {name,type:'producer'|'consumer',state:'ready'|'running'|'blocked'|'done'}
+
+function syncInit(){
+  const bs=parseInt($('syncBufSize').value)||5;
+  const np=parseInt($('syncProducers').value)||2;
+  const nc=parseInt($('syncConsumers').value)||2;
+  syncState={buffer:[],mutex:1,empty:bs,full:0,bufSize:bs,step:0,running:false,iv:null};
+  syncProcs=[];
+  for(let i=0;i<np;i++) syncProcs.push({name:'P'+(i+1),type:'producer',state:'ready',item:null});
+  for(let i=0;i<nc;i++) syncProcs.push({name:'C'+(i+1),type:'consumer',state:'ready',item:null});
+  syncRender();
+  addLog('syncLog','生产者-消费者模拟已初始化 (缓冲区:'+bs+' 生产者:'+np+' 消费者:'+nc+')');
+}
+
+function syncRender(){
+  // Buffer
+  let bufHtml='';
+  for(let i=0;i<syncState.bufSize;i++){
+    const item=syncState.buffer[i];
+    if(item!==undefined){
+      bufHtml+=`<div style="width:50px;height:50px;border-radius:8px;background:var(--blue);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.85rem;border:2px solid var(--cyan)">${item}</div>`;
+    } else {
+      bufHtml+=`<div style="width:50px;height:50px;border-radius:8px;background:var(--bg);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:.7rem">空</div>`;
+    }
+  }
+  $('syncBuffer').innerHTML=bufHtml;
+  // Semaphores
+  $('semMutex').textContent=syncState.mutex;
+  $('semEmpty').textContent=syncState.empty;
+  $('semFull').textContent=syncState.full;
+  // Processes
+  let procHtml='';
+  syncProcs.forEach(p=>{
+    const colorMap={ready:'var(--yellow)',running:'var(--green)',blocked:'var(--red)',waiting:'var(--red)'};
+    const icon=p.type==='producer'?'📤':'📥';
+    procHtml+=`<div style="padding:.4rem .7rem;border-radius:8px;border:2px solid ${colorMap[p.state]||'var(--border)'};background:${p.state==='running'?'rgba(16,185,129,.1)':p.state==='blocked'?'rgba(239,68,68,.08)':'transparent'};text-align:center;min-width:70px">`;
+    procHtml+=`<div style="font-size:.85rem;font-weight:600">${icon} ${p.name}</div>`;
+    procHtml+=`<div style="font-size:.65rem;color:var(--text2)">${p.type==='producer'?'生产者':'消费者'} | ${p.state==='ready'?'就绪':p.state==='running'?'运行':p.state==='blocked'?'阻塞':'等待'}</div>`;
+    if(p.item!==null&&p.item!==undefined) procHtml+=`<div style="font-size:.65rem;color:var(--cyan)">持有: ${p.item}</div>`;
+    procHtml+='</div>';
+  });
+  $('syncProcesses').innerHTML=procHtml;
+  $('syncStep').textContent=syncState.step;
+}
+
+function syncStep(){
+  if(syncProcs.length===0) syncInit();
+  syncState.step++;
+  // Find a ready process to execute
+  const ready=syncProcs.filter(p=>p.state==='ready');
+  if(ready.length===0){
+    // Unblock some processes
+    syncProcs.forEach(p=>{if(p.state==='blocked')p.state='ready'});
+    addLog('syncLog','<span style="color:var(--yellow)">所有进程阻塞，尝试唤醒...</span>');
+    syncRender();
+    return;
+  }
+  const proc=ready[Math.floor(Math.random()*ready.length)];
+  proc.state='running';
+  if(proc.type==='producer'){
+    // Producer: wait(empty), wait(mutex), produce, signal(mutex), signal(full)
+    if(syncState.empty<=0){
+      proc.state='blocked';
+      $('syncAction').innerHTML=`<span style="color:var(--red)">${proc.name} 阻塞: empty=0，缓冲区已满</span>`;
+      addLog('syncLog',`<span style="color:var(--red)">${proc.name} wait(empty) 阻塞 — 缓冲区已满</span>`);
+    } else if(syncState.mutex<=0){
+      proc.state='blocked';
+      $('syncAction').innerHTML=`<span style="color:var(--red)">${proc.name} 阻塞: mutex=0，等待互斥锁</span>`;
+      addLog('syncLog',`<span style="color:var(--red)">${proc.name} wait(mutex) 阻塞</span>`);
+    } else {
+      syncState.empty--;
+      syncState.mutex=0;
+      const item='D'+syncState.step;
+      syncState.buffer.push(item);
+      proc.item=item;
+      syncState.mutex=1;
+      syncState.full++;
+      proc.state='ready';
+      proc.item=null;
+      $('syncAction').innerHTML=`<span style="color:var(--green)">${proc.name} 生产 ${item} → 缓冲区[${syncState.buffer.length-1}]</span>`;
+      addLog('syncLog',`<span style="color:var(--green)">✓ ${proc.name}: wait(empty)→wait(mutex)→生产 ${item}→signal(mutex)→signal(full)</span>`);
+    }
+  } else {
+    // Consumer: wait(full), wait(mutex), consume, signal(mutex), signal(empty)
+    if(syncState.full<=0){
+      proc.state='blocked';
+      $('syncAction').innerHTML=`<span style="color:var(--red)">${proc.name} 阻塞: full=0，缓冲区为空</span>`;
+      addLog('syncLog',`<span style="color:var(--red)">${proc.name} wait(full) 阻塞 — 缓冲区为空</span>`);
+    } else if(syncState.mutex<=0){
+      proc.state='blocked';
+      $('syncAction').innerHTML=`<span style="color:var(--red)">${proc.name} 阻塞: mutex=0，等待互斥锁</span>`;
+      addLog('syncLog',`<span style="color:var(--red)">${proc.name} wait(mutex) 阻塞</span>`);
+    } else {
+      syncState.full--;
+      syncState.mutex=0;
+      const item=syncState.buffer.shift();
+      proc.item=item;
+      syncState.mutex=1;
+      syncState.empty++;
+      proc.state='ready';
+      $('syncAction').innerHTML=`<span style="color:var(--green)">${proc.name} 消费 ${item} ← 缓冲区</span>`;
+      addLog('syncLog',`<span style="color:var(--green)">✓ ${proc.name}: wait(full)→wait(mutex)→消费 ${item}→signal(mutex)→signal(empty)</span>`);
+      proc.item=null;
+    }
+  }
+  syncRender();
+}
+
+function syncStart(){
+  if(syncProcs.length===0) syncInit();
+  if(syncState.running) return;
+  syncState.running=true;
+  addLog('syncLog','<b style="color:var(--green)">开始自动模拟...</b>');
+  syncState.iv=setInterval(()=>{
+    syncStep();
+    if(syncState.step>=30){
+      clearInterval(syncState.iv);
+      syncState.running=false;
+      addLog('syncLog','<b style="color:var(--green)">自动模拟完成 (30步)</b>');
+    }
+  },500);
+}
+
+function syncReset(){
+  if(syncState.iv) clearInterval(syncState.iv);
+  syncState.running=false;
+  syncProcs=[];
+  $('syncBuffer').innerHTML='';
+  $('syncProcesses').innerHTML='';
+  $('syncAction').textContent='等待开始';
+  $('syncStep').textContent='0';
+  $('semMutex').textContent='1';$('semEmpty').textContent='-';$('semFull').textContent='0';
+  $('syncLog').innerHTML='';
+  addLog('syncLog','已重置');
+}
+
+// ===== MESSAGE PASSING =====
+let msgQueue=[]; // {from,to,content,id}
+let msgIdCounter=0;
+
+function msgSend(){
+  const from=$('msgFrom').value.trim()||'P1';
+  const to=$('msgTo').value.trim()||'P2';
+  const content=$('msgContent').value.trim()||'Hello';
+  msgIdCounter++;
+  msgQueue.push({from,to,content,id:msgIdCounter});
+  msgRender();
+  addLog('syncLog',`<span style="color:var(--cyan)">💬 ${from} → ${to}: "${content}" (消息#${msgIdCounter} 已入队)</span>`);
+}
+
+function msgReceive(){
+  if(msgQueue.length===0){addLog('syncLog','<span style="color:var(--red)">消息队列为空，无消息可接收</span>');return}
+  const msg=msgQueue.shift();
+  msgRender();
+  addLog('syncLog',`<span style="color:var(--green)">✓ ${msg.to} 接收来自 ${msg.from} 的消息: "${msg.content}"</span>`);
+}
+
+function msgRender(){
+  let html='';
+  msgQueue.forEach(m=>{
+    html+=`<div style="padding:.3rem .6rem;background:rgba(99,102,241,.15);border:1px solid rgba(99,102,241,.3);border-radius:6px;font-size:.78rem">`;
+    html+=`<span style="color:var(--cyan)">#${m.id}</span> ${m.from}→${m.to}: <b>${m.content}</b></div>`;
+  });
+  $('msgQueue').innerHTML=html||'<span style="color:var(--text2);font-size:.78rem">消息队列为空</span>';
+}
+
+// Init sync module
+syncInit();
+</script>
+</body>
+</html>
