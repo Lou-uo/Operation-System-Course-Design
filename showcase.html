@@ -205,10 +205,12 @@ footer .links a:hover{color:var(--accent);transform:translateY(-2px)}
       <div class="arch-items">
         <span class="arch-item">diskBlocks[] 磁盘块数组</span>
         <span class="arch-item">files[] 文件控制块</span>
+        <span class="arch-item">freeAreas[] 空闲盘区链</span>
         <span class="arch-item">bufPages[] LRU 缓冲页</span>
         <span class="arch-item">processes[] 进程队列</span>
         <span class="arch-item">semaphores 信号量</span>
         <span class="arch-item">msgQueue[] 消息队列</span>
+        <span class="arch-item">shmData 共享内存</span>
       </div>
     </div>
   </div>
@@ -223,15 +225,15 @@ footer .links a:hover{color:var(--accent);transform:translateY(-2px)}
     <div class="card fade-up">
       <div class="card-icon" style="background:var(--grad1)">💾</div>
       <h3>磁盘与文件管理</h3>
-      <p>模拟 M×N 磁盘（64B×1024块），实现二级目录（MFD→UFD）、连续存储分配、空闲盘区链管理。支持文件的新建、查看、修改、删除，含内存缓冲页（LRU 置换）与文件保护机制。</p>
-      <div class="card-tags"><span class="card-tag">二级目录</span><span class="card-tag">连续存储</span><span class="card-tag">空闲盘区链</span><span class="card-tag">LRU 缓冲页</span></div>
+      <p>模拟 M×N 磁盘（64B×1024块），实现二级目录（MFD→UFD）、连续存储分配、空闲盘区链与位示图(Bitmap)双模式管理。支持文件 FCB/iNode 详情查看、FAT 链表视图、文件访问冲突演示，含内存缓冲页（LRU 置换）与文件保护机制。</p>
+      <div class="card-tags"><span class="card-tag">二级目录</span><span class="card-tag">连续存储</span><span class="card-tag">位示图</span><span class="card-tag">FAT 链表</span><span class="card-tag">FCB/iNode</span><span class="card-tag">LRU 缓冲页</span><span class="card-tag">文件保护</span></div>
     </div>
 
     <div class="card fade-up">
       <div class="card-icon" style="background:var(--grad2)">📄</div>
       <h3>页面置换策略</h3>
-      <p>支持 LRU（最近最少使用）、FIFO（先进先出）、OPT（最优置换）、LFU（最不经常使用）、CLOCK（时钟算法）共 5 种页面置换算法，可视化帧状态、命中率统计与逐步/自动动画。</p>
-      <div class="card-tags"><span class="card-tag">LRU</span><span class="card-tag">FIFO</span><span class="card-tag">OPT</span><span class="card-tag">LFU</span><span class="card-tag">CLOCK</span></div>
+      <p>支持 LRU / FIFO / OPT / LFU / CLOCK 共 5 种页面置换算法，可视化帧状态与逐步/自动动画。新增算法对比模式，同一访问序列下柱状图对比缺页率与命中率，支持动画速度调节。</p>
+      <div class="card-tags"><span class="card-tag">LRU</span><span class="card-tag">FIFO</span><span class="card-tag">OPT</span><span class="card-tag">LFU</span><span class="card-tag">CLOCK</span><span class="card-tag">算法对比</span></div>
     </div>
 
     <div class="card fade-up">
@@ -251,8 +253,8 @@ footer .links a:hover{color:var(--accent);transform:translateY(-2px)}
     <div class="card fade-up">
       <div class="card-icon" style="background:var(--grad6)">🔗</div>
       <h3>同步与通信</h3>
-      <p>生产者-消费者信号量同步模拟（mutex / empty / full 三信号量），以及进程间消息传递队列机制。可视化进程状态（就绪/运行/阻塞）与缓冲区内容。</p>
-      <div class="card-tags"><span class="card-tag">生产者-消费者</span><span class="card-tag">信号量</span><span class="card-tag">消息传递</span></div>
+      <p>生产者-消费者信号量同步模拟（mutex / empty / full 三信号量），进程间消息传递队列、管道通信、共享内存三种 IPC 机制。可视化进程状态（就绪/运行/阻塞）与缓冲区内容。</p>
+      <div class="card-tags"><span class="card-tag">生产者-消费者</span><span class="card-tag">信号量</span><span class="card-tag">消息传递</span><span class="card-tag">管道</span><span class="card-tag">共享内存</span></div>
     </div>
 
   </div>
@@ -261,7 +263,7 @@ footer .links a:hover{color:var(--accent);transform:translateY(-2px)}
 <!-- FILE SYSTEM -->
 <section id="filesystem">
   <h2 class="section-title fade-up">文件系统详解</h2>
-  <p class="section-sub fade-up">二级目录 · 连续存储 · 空闲盘区链 · LRU 缓冲页置换</p>
+  <p class="section-sub fade-up">二级目录 · 连续存储 · 位示图 + 空闲盘区链 · FAT 链表 · LRU 缓冲页置换</p>
   <div class="fs-detail fade-up">
     <div class="fs-grid">
       <div class="fs-block">
@@ -283,12 +285,13 @@ footer .links a:hover{color:var(--accent);transform:translateY(-2px)}
         </ul>
       </div>
       <div class="fs-block">
-        <h4>🗂️ 空闲盘区管理 — 空闲盘区链</h4>
+        <h4>🗂️ 空闲盘区管理 — 双模式</h4>
         <ul>
-          <li>将所有空闲盘区按起始地址链接</li>
-          <li>每个空闲区记录：起始块号 + 空闲块数</li>
-          <li>分配时从链表中查找合适区域</li>
-          <li>回收时合并相邻空闲区</li>
+          <li>空闲盘区链：按起始地址链接空闲区</li>
+          <li>位示图(Bitmap)：64×16 网格可视化</li>
+          <li>FAT 链表视图：块号→块号→EOF</li>
+          <li>分配时首次适应查找合适区域</li>
+          <li>回收时自动合并相邻空闲区</li>
         </ul>
       </div>
       <div class="fs-block">
@@ -417,11 +420,11 @@ footer .links a:hover{color:var(--accent);transform:translateY(-2px)}
     </div>
     <div class="card fade-up">
       <h3 style="font-size:.95rem">📡 进程通信</h3>
-      <p>支持管道、消息传递、共享内存三种 IPC 方式，进程间通过 Message 结构交换数据。</p>
+      <p>支持消息传递（FIFO 队列）、管道通信（有界缓冲区 + 读写端阻塞）、共享内存三种 IPC 方式，全面覆盖操作系统进程间通信机制。</p>
     </div>
     <div class="card fade-up">
       <h3 style="font-size:.95rem">🛡️ 同步互斥</h3>
-      <p>对模拟磁盘和内存缓冲的并发访问采用信号量 / 条件变量机制进行同步与互斥控制。</p>
+      <p>生产者-消费者采用 mutex/empty/full 三信号量同步互斥，文件保护机制阻止并发访问冲突。</p>
     </div>
     <div class="card fade-up">
       <h3 style="font-size:.95rem">⏰ 进程调度</h3>

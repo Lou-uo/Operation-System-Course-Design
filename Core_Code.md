@@ -17,6 +17,12 @@
 9. [资源分配图绘制](#9-资源分配图绘制)
 10. [生产者-消费者同步模拟](#10-生产者-消费者同步模拟)
 11. [消息传递机制](#11-消息传递机制)
+12. [位示图(Bitmap)渲染](#12-位示图bitmap渲染)
+13. [FAT 链表视图](#13-fat-链表视图)
+14. [FCB/iNode 详情弹窗](#14-fcbinode-详情弹窗)
+15. [五种算法缺页率对比](#15-五种算法缺页率对比)
+16. [共享内存通信](#16-共享内存通信)
+17. [管道通信](#17-管道通信)
 
 ---
 
@@ -926,6 +932,289 @@ function msgReceive() {
   const msg = msgQueue.shift();  // 取出队首消息
   msgRender();
   addLog('syncLog', `✓ ${msg.to} 接收来自 ${msg.from} 的消息: "${msg.content}"`);
+}
+```
+
+---
+
+## 12. 位示图(Bitmap)渲染
+
+```javascript
+/**
+ * 位示图渲染 —— 将磁盘块状态映射为 64×16 网格
+ *
+ * 每个盘块对应一个小格子：
+ *   - bm-free（绿色）：空闲块
+ *   - bm-used（红色）：文件数据块
+ *   - bm-dir（紫色）：目录区
+ *   - bm-meta（粉紫色）：元数据区
+ *
+ * 与空闲盘区链互为补充，直观展示磁盘空间分配全貌。
+ */
+function bitmapRender() {
+  const el = $('bitmapGrid');
+  if (!el) return;
+  let html = '';
+  for (let i = 0; i < DISK_SIZE; i++) {
+    const b = diskBlocks[i];
+    let cls = 'bm-free';  // 默认空闲
+    if (b) {
+      if (b.type === 'dir') cls = 'bm-dir';
+      else if (b.type === 'meta') cls = 'bm-meta';
+      else cls = 'bm-used';
+    }
+    html += `<div class="bitmap-cell ${cls}" title="块${i}${b ? ' ' + b.file : ' 空闲'}"></div>`;
+  }
+  el.innerHTML = html;
+}
+```
+
+---
+
+## 13. FAT 链表视图
+
+```javascript
+/**
+ * FAT 链表视图 —— 将连续分配的块号映射为 FAT 表结构
+ *
+ * 虽然底层采用连续存储分配，但展示层将其转换为 FAT 链表形式：
+ *   块号 → 块号+1 → ... → EOF
+ *
+ * 同时生成 FAT 表格：
+ *   块号 | Next | 所属文件
+ *   24   | 25   | readme.txt
+ *   25   | 26   | readme.txt
+ *   26   | EOF  | readme.txt
+ */
+function fatRender() {
+  const el = $('fatView');
+  if (!el) return;
+  if (files.length === 0) {
+    el.innerHTML = '<span>创建文件后查看</span>';
+    return;
+  }
+  let html = '';
+  files.forEach(f => {
+    html += `<div><span>📄 ${f.name}</span>`;
+    html += `<div class="fat-chain">`;
+    for (let i = 0; i < f.size; i++) {
+      html += `<span class="fat-chain-block">${f.start + i}</span>`;
+      if (i < f.size - 1) html += `<span class="fat-chain-arrow">→</span>`;
+    }
+    html += `<span class="fat-chain-arrow">→</span><span class="fat-chain-eof">EOF</span>`;
+    html += `</div></div>`;
+  });
+  // FAT 表格
+  html += `<table class="fat-table"><thead><tr><th>块号</th><th>Next</th><th>所属文件</th></tr></thead><tbody>`;
+  files.forEach(f => {
+    for (let i = 0; i < f.size; i++) {
+      const next = i < f.size - 1 ? (f.start + i + 1) : 'EOF';
+      html += `<tr><td>${f.start + i}</td><td>${next}</td><td>${f.name}</td></tr>`;
+    }
+  });
+  html += `</tbody></table>`;
+  el.innerHTML = html;
+}
+```
+
+---
+
+## 14. FCB/iNode 详情弹窗
+
+```javascript
+/**
+ * FCB / iNode 详情弹窗 —— 展示文件的完整控制块信息
+ *
+ * 点击文件目录表任意行或双击目录树文件名触发。
+ * 展示字段包括：
+ *   - 文件名、所属用户、创建时间、权限
+ *   - 起始物理块、占用块数、实际数据量
+ *   - 存储分配方式、当前状态
+ *   - 数据块指针列表（可视化每个物理块）
+ */
+function showFCB(name) {
+  const f = files.find(x => x.name === name);
+  if (!f) return;
+  diskSelectFile(name);
+
+  const usedBytes = f.content
+    ? f.content.reduce((s, c) => s + c.length, 0) : 0;
+
+  let html = `<div class="fcb-row"><span class="fcb-key">📝 文件名</span>`
+    + `<span class="fcb-val">${f.name}</span></div>`;
+  html += `<div class="fcb-row"><span class="fcb-key">👤 所属用户</span>`
+    + `<span class="fcb-val">${f.owner}</span></div>`;
+  html += `<div class="fcb-row"><span class="fcb-key">📅 创建时间</span>`
+    + `<span class="fcb-val">${f.time}</span></div>`;
+  html += `<div class="fcb-row"><span class="fcb-key">🔒 权限</span>`
+    + `<span class="fcb-val">${f.perm}</span></div>`;
+  html += `<div class="fcb-row"><span class="fcb-key">📍 起始物理块</span>`
+    + `<span class="fcb-val">${f.start}</span></div>`;
+  html += `<div class="fcb-row"><span class="fcb-key">📦 占用块数</span>`
+    + `<span class="fcb-val">${f.size}</span></div>`;
+  html += `<div class="fcb-row"><span class="fcb-key">💾 实际数据量</span>`
+    + `<span class="fcb-val">${usedBytes}B / ${f.size * BLOCK_SIZE}B</span></div>`;
+  html += `<div class="fcb-row"><span class="fcb-key">📐 存储分配</span>`
+    + `<span class="fcb-val">连续分配</span></div>`;
+  html += `<div class="fcb-row"><span class="fcb-key">🔄 状态</span>`
+    + `<span class="fcb-val">${fileInUse === f.name ? '🟡 使用中' : '🟢 空闲'}</span></div>`;
+
+  // 数据块指针
+  html += `<div class="fcb-blocks">`;
+  for (let i = 0; i < f.size; i++) {
+    const hasData = f.content && f.content[i] && f.content[i].length > 0;
+    html += `<span class="fcb-block">块${f.start + i}${hasData ? '' : ' (空)'}</span>`;
+  }
+  html += `</div>`;
+
+  $('fcbContent').innerHTML = html;
+  $('fcbOverlay').style.display = 'flex';
+}
+```
+
+---
+
+## 15. 五种算法缺页率对比
+
+```javascript
+/**
+ * 五种页面置换算法缺页率对比
+ *
+ * 对同一组访问序列，分别用 LRU / FIFO / OPT / LFU / CLOCK
+ * 五种算法独立运行，统计缺页次数和缺页率，
+ * 用彩色柱状图可视化对比结果。
+ *
+ * 答辩时可一键展示，直观说明不同算法的性能差异。
+ */
+function pageCompareAlgorithms() {
+  if (pageSeq.length === 0) { /* 先生成序列 */ }
+
+  const algos = ['lru', 'fifo', 'opt', 'lfu', 'clock'];
+  const k = parseInt($('pageFrames').value) || 4;
+  const results = {};
+
+  algos.forEach(algo => {
+    let mem = new Array(k).fill(null);
+    let hits = 0, faults = 0, replaces = 0;
+    let fifoQ = [], clockHand = 0;
+
+    pageSeq.forEach((pid, idx) => {
+      const fi = mem.findIndex(f => f && f.pageId === pid);
+      if (fi !== -1) {
+        hits++;  // 命中
+        // 更新访问信息...
+      } else {
+        faults++;  // 缺页
+        const emptyIdx = mem.findIndex(f => f === null);
+        if (emptyIdx !== -1) {
+          // 有空帧，直接装入
+        } else {
+          // 按算法选择牺牲页并置换
+          // LRU: 淘汰 lastAccess 最小的
+          // FIFO: 淘汰最早装入的
+          // OPT:  淘汰未来最久不访问的
+          // LFU:  淘汰 accessCount 最小的
+          // CLOCK: 扫描 refBit=0 的帧
+          replaces++;
+        }
+      }
+    });
+
+    const total = hits + faults;
+    results[algo] = {
+      hits, faults, replaces,
+      rate: total ? (hits / total * 100).toFixed(1) : 0,
+      faultRate: total ? (faults / total * 100).toFixed(1) : 0
+    };
+  });
+
+  // 渲染柱状图 + 命中率排行
+  renderCompareChart(results);
+}
+```
+
+---
+
+## 16. 共享内存通信
+
+```javascript
+/**
+ * 共享内存通信模拟
+ *
+ * 与消息传递（FIFO 队列）互补，共享内存是最常见的 IPC 方式之一。
+ * 进程通过读写共享变量进行通信：
+ *   - shmWrite()：将值写入共享内存
+ *   - shmRead()：从共享内存读取值
+ *
+ * 数据结构：
+ *   shmData = { value: 共享变量值, writer: 写入进程名 }
+ */
+let shmData = { value: 0, writer: '', reader: '' };
+
+/** 写入共享内存 */
+function shmWrite() {
+  const proc = $('shmProc').value.trim() || 'P1';
+  const val = parseInt($('shmData').value) || 0;
+  shmData.value = val;
+  shmData.writer = proc;
+  $('shmValue').textContent = val;
+  // 动画反馈 + 日志记录
+  addLog('syncLog', `🧠 ${proc} 写入共享内存: Value = ${val}`);
+}
+
+/** 读取共享内存 */
+function shmRead() {
+  const proc = $('msgTo').value.trim() || 'P2';
+  // 动画反馈 + 日志记录
+  addLog('syncLog',
+    `🧠 ${proc} 读取共享内存: Value = ${shmData.value}` +
+    (shmData.writer ? ` (由 ${shmData.writer} 写入)` : ''));
+}
+```
+
+---
+
+## 17. 管道通信
+
+```javascript
+/**
+ * 管道通信模拟 —— 有界缓冲区 + 读写端阻塞
+ *
+ * 管道是经典的 IPC 方式：
+ *   - 固定容量的字节数组（pipeBuf）
+ *   - FIFO 顺序：写入追加到尾部，读取从头部取出
+ *   - 管道满时写端阻塞，管道空时读端阻塞
+ *
+ * 与消息队列、共享内存共同构成三种 IPC 方式。
+ */
+let pipeBuf = [];       // 管道缓冲区
+let pipeCapacity = 6;   // 管道容量
+
+/** 写入管道 —— 满时阻塞 */
+function pipeWrite() {
+  const writer = $('pipeWriter').value.trim() || 'P1';
+  const data = $('pipeData').value.trim() || 'A';
+
+  if (pipeBuf.length >= pipeCapacity) {
+    // 管道满，写端阻塞
+    addLog('syncLog', `🔧 ${writer} 写入阻塞: 管道已满`);
+    return;
+  }
+  pipeBuf.push(data);    // 追加到尾部
+  pipeRender();
+  addLog('syncLog', `🔧 ${writer} 写入管道: "${data}" (${pipeBuf.length}/${pipeCapacity})`);
+}
+
+/** 读取管道 —— 空时阻塞（FIFO） */
+function pipeRead() {
+  if (pipeBuf.length === 0) {
+    // 管道空，读端阻塞
+    addLog('syncLog', `🔧 读取阻塞: 管道为空`);
+    return;
+  }
+  const data = pipeBuf.shift();  // 从头部取出
+  pipeRender();
+  addLog('syncLog', `🔧 读端取出: "${data}" (剩余 ${pipeBuf.length}/${pipeCapacity})`);
 }
 ```
 

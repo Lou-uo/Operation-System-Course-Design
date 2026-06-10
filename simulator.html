@@ -140,6 +140,62 @@ label{font-size:.82rem;color:var(--text2);font-weight:500}
 .in-use-badge{display:inline-block;padding:.1rem .4rem;border-radius:4px;font-size:.65rem;font-weight:600;background:rgba(245,158,11,.2);color:var(--yellow);margin-left:4px;animation:inUsePulse 2s infinite}
 @keyframes inUsePulse{0%,100%{opacity:1}50%{opacity:.6}}
 
+/* BITMAP */
+.bitmap-grid{display:grid;grid-template-columns:repeat(64,1fr);gap:1px}
+.bitmap-cell{aspect-ratio:1;border-radius:1px;transition:background .3s}
+.bm-free{background:rgba(16,185,129,.35)}.bm-used{background:rgba(239,68,68,.4)}.bm-dir{background:var(--accent)}.bm-meta{background:var(--accent2)}
+
+/* FCB MODAL */
+.fcb-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center;animation:fadeIn .2s ease}
+.fcb-modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.8rem;max-width:480px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:modalIn .3s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes modalIn{from{opacity:0;transform:scale(.9) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.fcb-row{display:flex;justify-content:space-between;padding:.45rem 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:.85rem}
+.fcb-row:last-child{border-bottom:none}
+.fcb-key{color:var(--text2);font-weight:500}.fcb-val{color:var(--cyan);font-weight:600}
+.fcb-blocks{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.6rem}
+.fcb-block{padding:.25rem .5rem;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);border-radius:5px;font-size:.78rem;color:var(--blue);font-weight:600}
+
+/* ALGO COMPARE */
+.compare-bars{display:flex;flex-direction:column;gap:.6rem;margin:1rem 0}
+.compare-row{display:flex;align-items:center;gap:.8rem}
+.compare-label{width:60px;font-size:.82rem;font-weight:600;text-align:right;color:var(--text2)}
+.compare-track{flex:1;height:28px;background:var(--bg2);border-radius:6px;overflow:hidden;position:relative}
+.compare-fill{height:100%;border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:.72rem;font-weight:700;color:#fff;transition:width .8s cubic-bezier(.4,0,.2,1);min-width:40px}
+.compare-val{font-size:.82rem;font-weight:700;width:55px;text-align:left;color:var(--text)}
+
+/* FAT TABLE */
+.fat-table{width:100%;border-collapse:collapse;font-size:.78rem;margin:.5rem 0}
+.fat-table th,.fat-table td{padding:.35rem .5rem;border:1px solid var(--border);text-align:center}
+.fat-table th{background:var(--bg2);color:var(--text2);font-weight:600}
+.fat-chain{display:flex;align-items:center;gap:.3rem;flex-wrap:wrap;margin:.3rem 0;font-size:.8rem}
+.fat-chain-block{padding:.2rem .45rem;background:rgba(99,102,241,.12);border:1px solid rgba(99,102,241,.25);border-radius:4px;color:var(--accent);font-weight:600}
+.fat-chain-arrow{color:var(--text2)}
+.fat-chain-eof{padding:.2rem .45rem;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:4px;color:var(--red);font-weight:600}
+
+/* SHARED MEMORY */
+.shm-area{background:var(--bg);border:2px dashed var(--border);border-radius:10px;padding:1rem;margin:.5rem 0;min-height:80px;transition:border-color .3s}
+.shm-area.active{border-color:var(--cyan);background:rgba(6,182,212,.03)}
+.shm-cell{display:flex;align-items:center;justify-content:center;gap:1rem;padding:.5rem}
+.shm-val{font-size:1.8rem;font-weight:800;color:var(--cyan);transition:all .3s}
+.shm-label{font-size:.75rem;color:var(--text2)}
+
+/* SPEED CONTROL */
+.speed-ctrl{display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:var(--text2)}
+.speed-ctrl input[type=range]{width:80px;accent-color:var(--accent)}
+
+/* DEMO BTN */
+.btn-demo{background:linear-gradient(135deg,#ec4899,#f472b6);color:#fff;box-shadow:0 2px 8px rgba(236,72,153,.25)}
+.btn-demo:hover{box-shadow:0 4px 16px rgba(236,72,153,.4);transform:translateY(-1px)}
+
+/* CONFLICT OVERLAY */
+.conflict-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:flex;align-items:center;justify-content:center;animation:fadeIn .2s ease}
+.conflict-modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.8rem;max-width:520px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:modalIn .3s ease}
+.conflict-step{padding:.6rem;margin:.4rem 0;border-radius:8px;font-size:.85rem;animation:logSlide .4s ease}
+.conflict-step.info{background:rgba(99,102,241,.1);border-left:3px solid var(--accent);color:var(--text)}
+.conflict-step.blocked{background:rgba(239,68,68,.1);border-left:3px solid var(--red);color:var(--red)}
+.conflict-step.success{background:rgba(16,185,129,.1);border-left:3px solid var(--green);color:var(--green)}
+
 @media(max-width:700px){.disk-grid{grid-template-columns:repeat(16,1fr)}.col{min-width:100%}}
 </style>
 </head>
@@ -193,6 +249,10 @@ label{font-size:.82rem;color:var(--text2);font-weight:500}
           <button class="btn btn-s" onclick="diskViewFile()">查看内容</button>
           <button class="btn btn-y" onclick="diskEditFile()">修改内容</button>
         </div>
+        <div style="display:flex;gap:.5rem">
+          <button class="btn btn-demo" onclick="loadDiskSample()">📦 加载示例数据</button>
+          <button class="btn btn-s" onclick="showConflictDemo()">🔒 冲突演示</button>
+        </div>
         <div id="fileContent" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.5rem;font-size:.78rem;min-height:40px;color:var(--text2);display:none;max-height:300px;overflow-y:auto"></div>
       </div>
     </div>
@@ -208,6 +268,20 @@ label{font-size:.82rem;color:var(--text2);font-weight:500}
     <div class="box">
       <h3>📊 空闲盘区链</h3>
       <div id="freeList" style="font-size:.8rem;color:var(--text2);line-height:1.8"></div>
+    </div>
+    <div class="box">
+      <h3>🗺️ 位示图 (Bitmap)</h3>
+      <div class="bitmap-grid" id="bitmapGrid"></div>
+      <div style="display:flex;gap:1rem;margin-top:.5rem;font-size:.72rem;color:var(--text2)">
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(239,68,68,.4);vertical-align:middle;margin-right:3px"></span>已占用</span>
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(16,185,129,.35);vertical-align:middle;margin-right:3px"></span>空闲</span>
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--accent);vertical-align:middle;margin-right:3px"></span>目录</span>
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--accent2);vertical-align:middle;margin-right:3px"></span>元数据</span>
+      </div>
+    </div>
+    <div class="box">
+      <h3>🔗 FAT 链表视图</h3>
+      <div id="fatView" style="font-size:.8rem;color:var(--text2)">创建文件后查看</div>
     </div>
   </div>
 </div>
@@ -245,6 +319,12 @@ label{font-size:.82rem;color:var(--text2);font-weight:500}
         <button class="btn btn-s" onclick="pageStep()">逐步执行</button>
         <button class="btn btn-g" onclick="pageRunAll()">自动执行</button>
         <button class="btn btn-r" onclick="pageReset()">重置</button>
+        <button class="btn btn-demo" onclick="pageCompareAlgorithms()">📊 算法对比</button>
+        <div class="speed-ctrl">
+          <span>速度</span>
+          <input type="range" id="animSpeed" min="50" max="600" value="300" step="50">
+          <span id="speedVal">1.0x</span>
+        </div>
       </div>
     </div>
   </div>
@@ -270,6 +350,10 @@ label{font-size:.82rem;color:var(--text2);font-weight:500}
         <div class="stat"><div class="sv" id="statRate">0%</div><div class="sl">命中率</div></div>
         <div class="stat"><div class="sv" id="statReplace">0</div><div class="sl">置换</div></div>
       </div>
+    </div>
+    <div class="box" id="compareBox" style="display:none">
+      <h3>📊 五种算法缺页率对比</h3>
+      <div id="compareResult"></div>
     </div>
     <div class="box">
       <h3>📜 操作日志</h3>
@@ -299,6 +383,7 @@ label{font-size:.82rem;color:var(--text2);font-weight:500}
         <button class="btn btn-g" onclick="schedRun()">执行调度</button>
         <button class="btn btn-r" onclick="schedReset()">重置</button>
         <button class="btn btn-s" onclick="schedRandom()">随机生成</button>
+        <button class="btn btn-demo" onclick="loadSchedSample()">📦 示例数据</button>
       </div>
     </div>
   </div>
@@ -344,6 +429,7 @@ label{font-size:.82rem;color:var(--text2);font-weight:500}
         <button class="btn btn-p" onclick="bankInit()">初始化</button>
         <button class="btn btn-g" onclick="bankFindSafe()">查找安全序列</button>
         <button class="btn btn-s" onclick="bankRandom()">随机生成</button>
+        <button class="btn btn-demo" onclick="loadBankSample()">📦 示例数据</button>
       </div>
       <div id="bankInputs"></div>
       <div style="margin-top:.5rem"><label>可用资源 Available</label><br><input id="bankAvail" placeholder="如: 3 3 2" style="width:100%;margin-top:.3rem"></div>
@@ -417,6 +503,36 @@ label{font-size:.82rem;color:var(--text2);font-weight:500}
       <div id="msgQueue" style="display:flex;gap:.4rem;flex-wrap:wrap;min-height:40px;padding:.4rem;background:var(--bg);border:1px solid var(--border);border-radius:6px"></div>
     </div>
     <div class="box">
+      <h3>🧠 共享内存通信</h3>
+      <div class="shm-area" id="shmArea">
+        <div class="shm-cell">
+          <div style="text-align:center"><div class="shm-label">共享变量 Value</div><div class="shm-val" id="shmValue">0</div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <input id="shmProc" placeholder="写入进程" value="P1" style="width:80px">
+        <input id="shmData" placeholder="写入值" value="42" style="width:80px">
+        <button class="btn btn-p" onclick="shmWrite()">写入</button>
+        <button class="btn btn-s" onclick="shmRead()">读取</button>
+      </div>
+    </div>
+    <div class="box">
+      <h3>🔧 管道通信 (Pipe)</h3>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.5rem;align-items:center">
+        <span style="font-size:.78rem;color:var(--text2)">管道容量:</span>
+        <input id="pipeSize" type="number" value="6" min="2" max="12" style="width:50px">
+        <button class="btn btn-s" style="padding:.2rem .5rem;font-size:.7rem" onclick="pipeReset()">重置</button>
+      </div>
+      <div id="pipeBuffer" style="display:flex;gap:.3rem;flex-wrap:wrap;min-height:36px;padding:.4rem;background:var(--bg);border:2px solid var(--border);border-radius:6px;margin-bottom:.5rem"></div>
+      <div style="font-size:.75rem;color:var(--text2);margin-bottom:.5rem">状态: <span id="pipeStatus" style="color:var(--cyan)">0/6 已用</span> | 写端: <span id="pipeWriteEnd" style="color:var(--green)">就绪</span> | 读端: <span id="pipeReadEnd" style="color:var(--green)">就绪</span></div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <input id="pipeWriter" placeholder="写进程" value="P1" style="width:70px">
+        <input id="pipeData" placeholder="写入数据" value="A" style="width:70px">
+        <button class="btn btn-p" onclick="pipeWrite()">写入</button>
+        <button class="btn btn-s" onclick="pipeRead()">读取</button>
+      </div>
+    </div>
+    <div class="box">
       <h3>📜 操作日志</h3>
       <div class="log" id="syncLog"></div>
     </div>
@@ -425,6 +541,28 @@ label{font-size:.82rem;color:var(--text2);font-weight:500}
 </div>
 
 </div><!-- end main -->
+
+<!-- FCB Modal -->
+<div id="fcbOverlay" class="fcb-overlay" style="display:none" onclick="if(event.target===this)closeFCB()">
+  <div class="fcb-modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <h3 style="font-size:1rem">📝 FCB / iNode 详情</h3>
+      <button class="btn btn-s" style="padding:.2rem .6rem;font-size:.7rem" onclick="closeFCB()">关闭</button>
+    </div>
+    <div id="fcbContent"></div>
+  </div>
+</div>
+
+<!-- Conflict Demo Modal -->
+<div id="conflictOverlay" class="conflict-overlay" style="display:none" onclick="if(event.target===this)closeConflict()">
+  <div class="conflict-modal">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <h3 style="font-size:1rem">🔒 文件访问冲突演示</h3>
+      <button class="btn btn-s" style="padding:.2rem .6rem;font-size:.7rem" onclick="closeConflict()">关闭</button>
+    </div>
+    <div id="conflictContent"></div>
+  </div>
+</div>
 
 <script>
 // ===== TAB SWITCH =====
@@ -489,27 +627,106 @@ function diskRender(){
   let tree='<div class="dir-node"><span class="dir-folder">📁 / (root)</span></div>';
   for(const u in users){
     tree+=`<div class="dir-node" style="padding-left:1.2rem"><span class="dir-folder">📁 ${u}</span></div>`;
-    users[u].forEach(f=>{const inUseTag=fileInUse===f.name?'<span class="in-use-badge">使用中</span>':'';tree+=`<div class="dir-node" style="padding-left:2.4rem"><span class="dir-file" onclick="diskSelectFile('${f.name}')">📄 ${f.name} (${f.size}块)</span>${inUseTag}</div>`});
+    users[u].forEach(f=>{const inUseTag=fileInUse===f.name?'<span class="in-use-badge">使用中</span>':'';tree+=`<div class="dir-node" style="padding-left:2.4rem"><span class="dir-file" onclick="diskSelectFile('${f.name}')" ondblclick="showFCB('${f.name}')" title="双击查看FCB详情">📄 ${f.name} (${f.size}块)</span>${inUseTag}</div>`});
   }
   $('dirTree').innerHTML=tree;
   // file table
   let tb='';
-  files.forEach(f=>{const inUseBadge=fileInUse===f.name?'<span class="in-use-badge">使用中</span>':'';tb+=`<tr><td>${f.name}${inUseBadge}</td><td>${f.owner}</td><td>${f.time}</td><td>${f.start}</td><td>${f.size}</td><td>${f.perm}</td></tr>`});
+  files.forEach(f=>{const inUseBadge=fileInUse===f.name?'<span class="in-use-badge">使用中</span>':'';tb+=`<tr onclick="showFCB('${f.name}')" style="cursor:pointer" title="点击查看FCB详情"><td>${f.name}${inUseBadge}</td><td>${f.owner}</td><td>${f.time}</td><td>${f.start}</td><td>${f.size}</td><td>${f.perm}</td></tr>`});
   $('fileTable').querySelector('tbody').innerHTML=tb;
   // free list
   let fl='';
   freeAreas.forEach(a=>{fl+=`<div>起始块 <b>${a.start}</b> → 连续 <b>${a.count}</b> 块空闲</div>`});
   $('freeList').innerHTML=fl||'<div>无空闲盘区</div>';
+  // bitmap
+  bitmapRender();
+  // FAT view
+  fatRender();
 }
 
 let selectedFile=null;
 let fileInUse=null; // file protection: name of file currently being viewed/edited
+
+// ===== BITMAP RENDER =====
+function bitmapRender(){
+  const el=$('bitmapGrid');if(!el)return;
+  let html='';
+  for(let i=0;i<DISK_SIZE;i++){
+    const b=diskBlocks[i];
+    let cls='bm-free';
+    if(b){
+      if(b.type==='dir')cls='bm-dir';
+      else if(b.type==='meta')cls='bm-meta';
+      else cls='bm-used';
+    }
+    html+=`<div class="bitmap-cell ${cls}" title="块${i}${b?' '+b.file:' 空闲'}"></div>`;
+  }
+  el.innerHTML=html;
+}
+
+// ===== FAT CHAIN VIEW =====
+function fatRender(){
+  const el=$('fatView');if(!el)return;
+  if(files.length===0){el.innerHTML='<span style="color:var(--text2)">创建文件后查看</span>';return}
+  let html='';
+  files.forEach(f=>{
+    html+=`<div style="margin-bottom:.6rem"><span style="color:var(--cyan);font-weight:600">📄 ${f.name}</span>`;
+    html+=`<div class="fat-chain">`;
+    for(let i=0;i<f.size;i++){
+      html+=`<span class="fat-chain-block">${f.start+i}</span>`;
+      if(i<f.size-1) html+=`<span class="fat-chain-arrow">→</span>`;
+    }
+    html+=`<span class="fat-chain-arrow">→</span><span class="fat-chain-eof">EOF</span>`;
+    html+=`</div></div>`;
+  });
+  // FAT table view
+  html+=`<table class="fat-table"><thead><tr><th>块号</th><th>Next</th><th>所属文件</th></tr></thead><tbody>`;
+  files.forEach(f=>{
+    for(let i=0;i<f.size;i++){
+      const blockNum=f.start+i;
+      const next=i<f.size-1?(f.start+i+1):'EOF';
+      html+=`<tr><td>${blockNum}</td><td style="color:${next==='EOF'?'var(--red)':'var(--cyan)'}">${next}</td><td>${f.name}</td></tr>`;
+    }
+  });
+  html+=`</tbody></table>`;
+  el.innerHTML=html;
+}
+
+// ===== FCB / iNode DETAIL MODAL =====
+function showFCB(name){
+  const f=files.find(x=>x.name===name);
+  if(!f)return;
+  diskSelectFile(name);
+  const el=$('fcbContent');
+  const hasContent=f.content&&f.content.some(c=>c.length>0);
+  const usedBytes=f.content?f.content.reduce((s,c)=>s+c.length,0):0;
+  let html=`<div class="fcb-row"><span class="fcb-key">📝 文件名</span><span class="fcb-val">${f.name}</span></div>`;
+  html+=`<div class="fcb-row"><span class="fcb-key">👤 所属用户</span><span class="fcb-val">${f.owner}</span></div>`;
+  html+=`<div class="fcb-row"><span class="fcb-key">📅 创建时间</span><span class="fcb-val">${f.time}</span></div>`;
+  html+=`<div class="fcb-row"><span class="fcb-key">🔒 权限</span><span class="fcb-val">${f.perm}</span></div>`;
+  html+=`<div class="fcb-row"><span class="fcb-key">📍 起始物理块</span><span class="fcb-val">${f.start}</span></div>`;
+  html+=`<div class="fcb-row"><span class="fcb-key">📦 占用块数</span><span class="fcb-val">${f.size}</span></div>`;
+  html+=`<div class="fcb-row"><span class="fcb-key">💾 实际数据量</span><span class="fcb-val">${usedBytes}B / ${f.size*BLOCK_SIZE}B</span></div>`;
+  html+=`<div class="fcb-row"><span class="fcb-key">📐 存储分配</span><span class="fcb-val">连续分配</span></div>`;
+  html+=`<div class="fcb-row"><span class="fcb-key">🔄 状态</span><span class="fcb-val">${fileInUse===f.name?'🟡 使用中':'🟢 空闲'}</span></div>`;
+  html+=`<div style="margin-top:.8rem;font-size:.82rem;color:var(--text2);font-weight:600">数据块指针：</div>`;
+  html+=`<div class="fcb-blocks">`;
+  for(let i=0;i<f.size;i++){
+    const hasData=f.content&&f.content[i]&&f.content[i].length>0;
+    html+=`<span class="fcb-block" style="${hasData?'':'opacity:.5'}">块${f.start+i}${hasData?'':' (空)'}</span>`;
+  }
+  html+=`</div>`;
+  el.innerHTML=html;
+  $('fcbOverlay').style.display='flex';
+}
+function closeFCB(){$('fcbOverlay').style.display='none'}
 
 // ===== BUFFER PAGE SYSTEM =====
 const BUF_SIZE=8; // K=8 buffer pages
 let bufPages=new Array(BUF_SIZE).fill(null); // {blockIdx, owner, content, accessTime, dirty}
 let bufAccessCounter=0;
 let bufWritebacks=0;
+let animSpeed=300; // animation delay in ms
 
 function bufRender(){
   const el=$('bufPages');let html='';
@@ -574,7 +791,7 @@ async function bufLoadFileAnimated(file, callback){
     }
     bufLoadBlock(blockIdx, file.name, content);
     bufRender();
-    await new Promise(r=>setTimeout(r,300));
+    await new Promise(r=>setTimeout(r,animSpeed));
   }
   addLog('diskLog',`<span style="color:var(--green)">✓ ${file.name} 全部加载到缓冲区</span>`);
   if(callback) callback();
@@ -841,7 +1058,7 @@ function pageRunAll(){
   let html='';pageSeq.forEach((p,i)=>{html+=`<span id="ps${i}" style="display:inline-block;padding:.2rem .5rem;border-radius:5px;background:var(--bg2);border:1px solid var(--border);font-size:.82rem;font-weight:600;transition:all .3s">${p}</span>`});
   $('pageSeq').innerHTML=html;
   let i=0;
-  const iv=setInterval(()=>{if(i>=pageSeq.length){clearInterval(iv);addLog('pageLog','<b style="color:var(--green)">自动执行完毕</b>');return}pageStep();i++},300);
+  const iv=setInterval(()=>{if(i>=pageSeq.length){clearInterval(iv);addLog('pageLog','<b style="color:var(--green)">自动执行完毕</b>');return}pageStep();i++},animSpeed);
 }
 
 // ===== SCHEDULING MODULE =====
@@ -1273,6 +1490,319 @@ function msgRender(){
 
 // Init sync module
 syncInit();
+
+// ===== SPEED CONTROL =====
+(function(){
+  const slider=$('animSpeed');
+  if(slider){
+    slider.addEventListener('input',function(){
+      animSpeed=parseInt(this.value);
+      const rate=(300/animSpeed).toFixed(1);
+      $('speedVal').textContent=rate+'x';
+    });
+  }
+})();
+
+// ===== ALGORITHM COMPARISON =====
+function pageCompareAlgorithms(){
+  if(pageSeq.length===0){
+    // Generate a sequence if none exists
+    const len=parseInt($('pageSeqLen').value)||20;
+    const range=parseInt($('pageRange').value)||10;
+    pageSeq=[];for(let i=0;i<len;i++) pageSeq.push(Math.floor(Math.random()*range));
+  }
+  const algos=['lru','fifo','opt','lfu','clock'];
+  const algoNames={lru:'LRU',fifo:'FIFO',opt:'OPT',lfu:'LFU',clock:'CLOCK'};
+  const colors={lru:'#6366f1',fifo:'#3b82f6',opt:'#10b981',lfu:'#f59e0b',clock:'#ec4899'};
+  const k=parseInt($('pageFrames').value)||4;
+  const results={};
+
+  algos.forEach(algo=>{
+    let mem=new Array(k).fill(null);
+    let hits=0,faults=0,replaces=0;
+    let fifoQ=[],clockHand=0;
+
+    pageSeq.forEach((pid,idx)=>{
+      const fi=mem.findIndex(f=>f&&f.pageId===pid);
+      if(fi!==-1){
+        hits++;
+        mem[fi].lastAccess=idx;
+        mem[fi].accessCount=(mem[fi].accessCount||0)+1;
+        if(algo==='clock') mem[fi].refBit=1;
+      } else {
+        faults++;
+        const emptyIdx=mem.findIndex(f=>f===null);
+        if(emptyIdx!==-1){
+          mem[emptyIdx]={pageId:pid,lastAccess:idx,accessCount:1,refBit:1};
+          if(algo==='fifo') fifoQ.push(emptyIdx);
+        } else {
+          let victimIdx=-1;
+          if(algo==='lru'){
+            let t=Infinity;mem.forEach((f,i)=>{if(f.lastAccess<t){t=f.lastAccess;victimIdx=i}});
+          } else if(algo==='fifo'){
+            victimIdx=fifoQ.shift();
+          } else if(algo==='opt'){
+            let far=-1;
+            mem.forEach((f,i)=>{
+              let nu=Infinity;
+              for(let j=idx+1;j<pageSeq.length;j++){if(pageSeq[j]===f.pageId){nu=j;break}}
+              if(nu>far){far=nu;victimIdx=i}
+            });
+          } else if(algo==='lfu'){
+            let mc=Infinity;mem.forEach((f,i)=>{if(f.accessCount<mc){mc=f.accessCount;victimIdx=i}});
+          } else if(algo==='clock'){
+            let sw=0;
+            while(sw<mem.length*2){
+              const f=mem[clockHand];
+              if(f&&f.refBit===0){victimIdx=clockHand;clockHand=(clockHand+1)%mem.length;break}
+              if(f)f.refBit=0;clockHand=(clockHand+1)%mem.length;sw++;
+            }
+            if(victimIdx===-1)victimIdx=0;
+          }
+          replaces++;
+          mem[victimIdx]={pageId:pid,lastAccess:idx,accessCount:1,refBit:1};
+          if(algo==='fifo')fifoQ.push(victimIdx);
+        }
+      }
+    });
+    const total=hits+faults;
+    results[algo]={hits,faults,replaces,rate:total?(hits/total*100).toFixed(1):0,faultRate:total?(faults/total*100).toFixed(1):0};
+  });
+
+  // Render comparison
+  const box=$('compareBox');box.style.display='block';
+  let html='<div class="compare-bars">';
+  algos.forEach(algo=>{
+    const r=results[algo];
+    const w=Math.max(parseFloat(r.faultRate),5);
+    html+=`<div class="compare-row">`;
+    html+=`<span class="compare-label">${algoNames[algo]}</span>`;
+    html+=`<div class="compare-track"><div class="compare-fill" style="width:${w}%;background:${colors[algo]}">${r.faultRate}%</div></div>`;
+    html+=`<span class="compare-val" style="color:${colors[algo]}">缺页${r.faults}</span>`;
+    html+=`</div>`;
+  });
+  html+='</div>';
+  // Hit rate comparison
+  html+=`<div style="margin-top:1rem;font-size:.85rem;color:var(--text2)"><b style="color:var(--text)">命中率排行：</b>`;
+  const sorted=algos.slice().sort((a,b)=>parseFloat(results[b].rate)-parseFloat(results[a].rate));
+  sorted.forEach((algo,i)=>{
+    html+=`<span style="color:${colors[algo]};font-weight:600;margin:0 .3rem">${i===1?'🥇':i===2?'🥈':i===3?'🥉':''}${algoNames[algo]}(${results[algo].rate}%)</span>`;
+  });
+  html+=`</div>`;
+  $('compareResult').innerHTML=html;
+  addLog('pageLog','<b style="color:var(--cyan)">📊 五种算法对比完成</b>');
+
+  // Animate bars
+  setTimeout(()=>{
+    document.querySelectorAll('.compare-fill').forEach(el=>{el.style.transition='width .8s cubic-bezier(.4,0,.2,1)'});
+  },50);
+}
+
+// ===== SAMPLE DATA LOADERS =====
+function loadDiskSample(){
+  // Create several sample files with content
+  const samples=[
+    {name:'readme.txt',owner:'user1',size:3,content:'This is a sample readme file for OS course design project.'},
+    {name:'config.sys',owner:'user1',size:2,content:'DEVICE=HIMEM.SYS\nDEVICE=EMM386.EXE\nDOS=HIGH,UMB'},
+    {name:'data.csv',owner:'user2',size:4,content:'id,name,score\n1,Alice,95\n2,Bob,87\n3,Carol,92\n4,Dave,78'},
+    {name:'notes.txt',owner:'user2',size:2,content:'Operating System Course Notes: Process scheduling and memory management.'}
+  ];
+  samples.forEach(s=>{
+    $('newFileName').value=s.name;
+    $('newFileOwner').value=s.owner;
+    $('newFileSize').value=s.size;
+    $('newFileContent').value=s.content;
+    diskCreateFile();
+  });
+  $('newFileName').value='';$('newFileOwner').value='';$('newFileContent').value='';$('newFileSize').value=5;
+  addLog('diskLog','<b style="color:var(--green)">📦 示例数据加载完成（4个文件）</b>');
+}
+
+function loadSchedSample(){
+  schedProcs=[];schedProcId=0;
+  const samples=[
+    {name:'P1',arrival:0,burst:5,priority:3},
+    {name:'P2',arrival:1,burst:3,priority:1},
+    {name:'P3',arrival:2,burst:8,priority:4},
+    {name:'P4',arrival:3,burst:2,priority:2},
+    {name:'P5',arrival:4,burst:4,priority:5}
+  ];
+  samples.forEach(s=>{
+    schedProcId++;
+    const p={name:s.name,arrival:s.arrival,burst:s.burst,priority:s.priority,state:'ready',waitTime:0,turnTime:0,remaining:s.burst};
+    schedProcs.push(p);
+  });
+  schedRenderTable();
+  addLog('schedLog','📦 已加载 5 个示例进程');
+}
+
+function loadBankSample(){
+  $('bankProc').value=5;$('bankRes').value=3;
+  $('bankAvail').value='3 3 2';
+  // Override with classic textbook example
+  bankData={
+    np:5,nr:3,rnames:['A','B','C'],
+    max:[[7,5,3],[3,2,2],[9,0,2],[2,2,2],[4,3,3]],
+    alloc:[[0,1,0],[2,0,0],[3,0,2],[2,1,1],[0,0,2]],
+    need:[[7,4,3],[1,2,2],[6,0,0],[0,1,1],[4,3,1]],
+    avail:[3,3,2]
+  };
+  bankRenderTable();
+  addLog('bankLog','📦 已加载教科书经典示例（5进程 3资源）');
+}
+
+// ===== FILE CONFLICT DEMO =====
+async function showConflictDemo(){
+  // Ensure we have a file to demonstrate
+  let demoFile=files.find(f=>f.name==='conflict_test.txt');
+  if(!demoFile){
+    $('newFileName').value='conflict_test.txt';
+    $('newFileOwner').value='user1';
+    $('newFileSize').value=3;
+    $('newFileContent').value='This file is used for conflict demonstration.';
+    diskCreateFile();
+    demoFile=files.find(f=>f.name==='conflict_test.txt');
+  }
+  if(!demoFile)return;
+
+  const el=$('conflictContent');
+  $('conflictOverlay').style.display='flex';
+  el.innerHTML='';
+
+  const steps=[
+    {cls:'info',msg:'📝 场景：P1(编辑进程) 和 P2(删除进程) 并发访问 conflict_test.txt'},
+    {cls:'info',msg:'▶ P1 请求编辑文件 conflict_test.txt ...'},
+    {cls:'info',msg:'✅ P1 获得文件锁，进入编辑模式 (fileInUse = "conflict_test.txt")'},
+    {cls:'info',msg:'▶ P2 请求删除文件 conflict_test.txt ...'},
+    {cls:'blocked',msg:'⛔ P2 被阻塞！文件正在被 P1 使用，删除操作被拒绝'},
+    {cls:'info',msg:'🔄 P1 保存修改并关闭文件 (fileInUse = null)'},
+    {cls:'info',msg:'▶ P2 重新请求删除 conflict_test.txt ...'},
+    {cls:'success',msg:'✅ P2 成功删除文件，释放磁盘块，更新空闲盘区链'}
+  ];
+
+  // Actually perform the operations during the demo
+  for(let i=0;i<steps.length;i++){
+    await new Promise(r=>setTimeout(r,800));
+    el.innerHTML+=`<div class="conflict-step ${steps[i].cls}">${steps[i].msg}</div>`;
+    el.scrollTop=el.scrollHeight;
+
+    // Perform actual operations at key steps
+    if(i===1){
+      selectedFile='conflict_test.txt';
+      fileInUse='conflict_test.txt';
+      diskRender();
+    }
+    if(i===4){
+      // Try to delete while in use - show it's blocked
+      addLog('diskLog','<span style="color:var(--red)">⛔ 冲突演示: P2 删除被阻止，文件正在被 P1 使用</span>');
+    }
+    if(i===5){
+      fileInUse=null;
+      diskRender();
+    }
+    if(i===7){
+      // Actually delete the file
+      const idx=files.findIndex(f=>f.name==='conflict_test.txt');
+      if(idx!==-1){
+        const f=files[idx];
+        for(let j=f.start;j<f.start+f.size;j++) diskBlocks[j]=null;
+        bufPages.forEach((p,bi)=>{if(p&&p.owner==='conflict_test.txt')bufPages[bi]=null});
+        bufRender();
+        files.splice(idx,1);selectedFile=null;
+        updateFreeAreas();diskRender();
+        addLog('diskLog','<span style="color:var(--green)">✅ 冲突演示: P2 成功删除文件</span>');
+      }
+    }
+  }
+  await new Promise(r=>setTimeout(r,500));
+  el.innerHTML+=`<div class="conflict-step success" style="margin-top:.5rem;font-weight:600">🎬 演示完成！文件保护机制有效阻止了并发访问冲突</div>`;
+}
+function closeConflict(){$('conflictOverlay').style.display='none'}
+
+// ===== SHARED MEMORY COMMUNICATION =====
+let shmData={value:0,writer:'',reader:'',log:[]};
+
+function shmWrite(){
+  const proc=$('shmProc').value.trim()||'P1';
+  const val=parseInt($('shmData').value)||0;
+  shmData.value=val;
+  shmData.writer=proc;
+  $('shmValue').textContent=val;
+  $('shmValue').style.transform='scale(1.3)';
+  setTimeout(()=>{$('shmValue').style.transform='scale(1)'},300);
+  $('shmArea').classList.add('active');
+  setTimeout(()=>{$('shmArea').classList.remove('active')},1000);
+  addLog('syncLog',`<span style="color:var(--cyan)">🧠 ${proc} 写入共享内存: Value = ${val}</span>`);
+}
+
+function shmRead(){
+  const proc=$('msgTo').value.trim()||'P2';
+  $('shmValue').style.transform='scale(1.2)';
+  $('shmValue').style.color='var(--green)';
+  setTimeout(()=>{$('shmValue').style.transform='scale(1)';$('shmValue').style.color='var(--cyan)'},400);
+  $('shmArea').classList.add('active');
+  setTimeout(()=>{$('shmArea').classList.remove('active')},1000);
+  addLog('syncLog',`<span style="color:var(--green)">🧠 ${proc} 读取共享内存: Value = ${shmData.value}${shmData.writer?' (由 '+shmData.writer+' 写入)':''}</span>`);
+}
+
+// ===== PIPE COMMUNICATION =====
+let pipeBuf=[];  // 管道缓冲区（字节数组）
+let pipeCapacity=6;
+
+function pipeRender(){
+  const cap=parseInt($('pipeSize').value)||6;
+  pipeCapacity=cap;
+  const el=$('pipeBuffer');
+  let html='';
+  for(let i=0;i<cap;i++){
+    if(i<pipeBuf.length){
+      html+=`<div style="width:40px;height:32px;border-radius:5px;background:rgba(99,102,241,.2);border:1px solid rgba(99,102,241,.4);display:flex;align-items:center;justify-content:center;color:var(--accent);font-weight:700;font-size:.85rem">${pipeBuf[i]}</div>`;
+    } else {
+      html+=`<div style="width:40px;height:32px;border-radius:5px;background:var(--bg2);border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:.65rem">空</div>`;
+    }
+  }
+  el.innerHTML=html;
+  $('pipeStatus').textContent=pipeBuf.length+'/'+cap+' 已用';
+  $('pipeWriteEnd').textContent=pipeBuf.length>=cap?'⛔ 阻塞(满)':'✓ 就绪';
+  $('pipeWriteEnd').style.color=pipeBuf.length>=cap?'var(--red)':'var(--green)';
+  $('pipeReadEnd').textContent=pipeBuf.length===0?'⛔ 阻塞(空)':'✓ 就绪';
+  $('pipeReadEnd').style.color=pipeBuf.length===0?'var(--red)':'var(--green)';
+  // Highlight pipe border when active
+  el.style.borderColor=pipeBuf.length>0?'var(--cyan)':'var(--border)';
+}
+
+function pipeWrite(){
+  const cap=parseInt($('pipeSize').value)||6;
+  pipeCapacity=cap;
+  const writer=$('pipeWriter').value.trim()||'P1';
+  const data=$('pipeData').value.trim()||'A';
+  if(pipeBuf.length>=cap){
+    addLog('syncLog',`<span style="color:var(--red)">🔧 ${writer} 写入阻塞: 管道已满 (${pipeBuf.length}/${cap})，读端必须先读取</span>`);
+    return;
+  }
+  pipeBuf.push(data);
+  pipeRender();
+  addLog('syncLog',`<span style="color:var(--cyan)">🔧 ${writer} 写入管道: "${data}" (${pipeBuf.length}/${cap})</span>`);
+}
+
+function pipeRead(){
+  if(pipeBuf.length===0){
+    addLog('syncLog',`<span style="color:var(--red)">🔧 读取阻塞: 管道为空，写端必须先写入</span>`);
+    return;
+  }
+  const data=pipeBuf.shift();  // FIFO: 从头部读取
+  pipeRender();
+  addLog('syncLog',`<span style="color:var(--green)">🔧 读端取出: "${data}" (剩余 ${pipeBuf.length}/${pipeCapacity})</span>`);
+}
+
+function pipeReset(){
+  pipeBuf=[];
+  pipeRender();
+  addLog('syncLog','<span style="color:var(--text2)">🔧 管道已重置</span>');
+}
+
+// Initialize pipe
+pipeRender();
 </script>
 </body>
 </html>
