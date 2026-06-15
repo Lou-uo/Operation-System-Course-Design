@@ -23,6 +23,8 @@
 15. [五种算法缺页率对比](#15-五种算法缺页率对比)
 16. [共享内存通信](#16-共享内存通信)
 17. [管道通信](#17-管道通信)
+18. [命令进程调度](#18-命令进程调度)
+19. [导览演示模式](#19-导览演示模式)
 
 ---
 
@@ -1216,6 +1218,130 @@ function pipeRead() {
   pipeRender();
   addLog('syncLog', `🔧 读端取出: "${data}" (剩余 ${pipeBuf.length}/${pipeCapacity})`);
 }
+```
+
+---
+
+## 18. 命令进程调度
+
+```javascript
+/**
+ * 命令进程模式 —— 文件操作生成命令进程，经调度后执行
+ *
+ * 开启进程模式后，文件操作（新建/删除/查看/修改）不直接执行，
+ * 而是生成命令进程节点进入队列：
+ *   Ready (就绪) → Running (运行) → Done (完成)
+ *
+ * 实现文件系统与进程管理的耦合展示。
+ */
+let cmdQueue = [];    // 命令进程队列
+let cmdIdCounter = 0; // 进程 ID 计数器
+
+/** 入队 —— 将文件操作包装为命令进程 */
+function cmdEnqueue(action, label) {
+  const id = ++cmdIdCounter;
+  cmdQueue.push({ id, action, label, status: 'ready' });
+  cmdRender();
+}
+
+/** 调度执行单个命令进程 */
+async function cmdDispatchOne(id) {
+  const cmd = cmdQueue.find(c => c.id === id);
+  if (!cmd || cmd.status !== 'ready') return;
+
+  cmd.status = 'running'; cmdRender();          // Ready → Running
+  await new Promise(r => setTimeout(r, 1200));  // 模拟调度延时
+
+  switch (cmd.action) {  // 执行实际文件操作
+    case 'create': diskCreateFile(); break;
+    case 'delete': diskDeleteFile(); break;
+    case 'view':   diskViewFile();   break;
+    case 'edit':   diskEditFile();   break;
+  }
+
+  cmd.status = 'done'; cmdRender();             // Running → Done
+}
+
+/** 调度全部就绪进程 */
+async function cmdDispatchAll() {
+  const ready = cmdQueue.filter(c => c.status === 'ready');
+  for (const cmd of ready) {
+    await cmdDispatchOne(cmd.id);
+    await new Promise(r => setTimeout(r, 400));
+  }
+}
+```
+
+---
+
+## 19. 导览演示模式
+
+```javascript
+/**
+ * 一键演示 —— 自动导览 6 个步骤，展示所有模块核心功能
+ *
+ * 演示流程:
+ *   Step 1: 磁盘示例数据加载
+ *   Step 2: 查看文件 (缓冲页动画)
+ *   Step 3: 页面置换算法对比
+ *   Step 4: 进程调度 RR
+ *   Step 5: 银行家算法
+ *   Step 6: 生产者-消费者同步
+ */
+let demoRunning = false;
+let demoAbort = false;
+
+async function startDemoTour() {
+  if (demoRunning) return;
+  demoRunning = true; demoAbort = false;
+  $('demoBar').classList.add('visible');
+  const total = 6;
+
+  try {
+    demoUpdate(1, total, '加载磁盘示例数据');
+    switchTab('disk'); await demoWait(2000);
+    loadDiskSample(); await demoWait(4000);
+
+    demoUpdate(2, total, '查看文件内容');
+    selectedFile = 'readme.txt'; diskViewFile();
+    await demoWait(5000); closeFileView();
+
+    demoUpdate(3, total, '页面置换算法对比');
+    switchTab('page'); await demoWait(1500);
+    pageGenerate(); await demoWait(3000);
+    pageCompareAlgorithms(); await demoWait(4000);
+
+    demoUpdate(4, total, '进程调度 (RR)');
+    switchTab('sched'); await demoWait(1500);
+    loadSchedSample(); await demoWait(2000);
+    schedRun(); await demoWait(4000);
+
+    demoUpdate(5, total, '银行家算法');
+    switchTab('dead'); await demoWait(1500);
+    loadBankSample(); await demoWait(2000);
+    bankFindSafe(); await demoWait(4000);
+
+    demoUpdate(6, total, '生产者-消费者同步');
+    switchTab('sync'); await demoWait(1500);
+    syncStart(); await demoWait(4000);
+
+    demoUpdate(total, total, '✓ 演示完成！');
+    await demoWait(3000);
+  } catch (e) { /* aborted */ }
+
+  demoRunning = false;
+  $('demoBar').classList.remove('visible');
+}
+
+/** 可中断延时 */
+async function demoWait(ms) {
+  for (let i = 0; i < ms / 100; i++) {
+    if (demoAbort) throw new Error('aborted');
+    await new Promise(r => setTimeout(r, 100));
+  }
+}
+
+function stopDemo() { demoAbort = true; }
 ```
 
 ---

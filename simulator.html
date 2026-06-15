@@ -196,10 +196,45 @@ label{font-size:.82rem;color:var(--text2);font-weight:500}
 .conflict-step.blocked{background:rgba(239,68,68,.1);border-left:3px solid var(--red);color:var(--red)}
 .conflict-step.success{background:rgba(16,185,129,.1);border-left:3px solid var(--green);color:var(--green)}
 
+/* COMMAND PROCESS MODE */
+.cmd-toggle{display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--text2);cursor:pointer;user-select:none}
+.cmd-toggle input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px}
+.cmd-queue{background:var(--bg);border:2px dashed var(--border);border-radius:10px;padding:.8rem;margin-top:.6rem;min-height:40px;transition:border-color .3s}
+.cmd-queue.active{border-color:var(--accent);background:rgba(99,102,241,.03)}
+.cmd-node{display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border-radius:8px;margin-bottom:.4rem;font-size:.82rem;animation:logSlide .3s ease}
+.cmd-node.ready{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);color:var(--yellow)}
+.cmd-node.running{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3);color:var(--green);animation:pulse 1s infinite}
+.cmd-node.done{background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.15);color:var(--text2);opacity:.7}
+.cmd-status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.cmd-node.ready .cmd-status-dot{background:var(--yellow)}
+.cmd-node.running .cmd-status-dot{background:var(--green);animation:blink .6s infinite}
+.cmd-node.done .cmd-status-dot{background:var(--text2)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.cmd-node .cmd-info{flex:1}
+.cmd-node .cmd-id{font-weight:700;margin-right:.3rem}
+.cmd-dispatch-btn{padding:.25rem .6rem;font-size:.72rem;border-radius:6px;border:none;background:var(--green);color:#fff;cursor:pointer;font-weight:600;transition:all .2s}
+.cmd-dispatch-btn:hover{opacity:.8;transform:scale(1.05)}
+
+/* DEMO TOUR */
+.demo-bar{position:fixed;top:0;left:0;right:0;height:44px;background:linear-gradient(135deg,#1a1a2e,#16213e);border-bottom:1px solid var(--border);z-index:300;display:none;align-items:center;padding:0 1.5rem;gap:1rem;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.demo-bar.visible{display:flex}
+.demo-progress{flex:1;height:6px;background:var(--bg2);border-radius:3px;overflow:hidden}
+.demo-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--cyan));border-radius:3px;transition:width .5s ease;width:0%}
+.demo-step{font-size:.82rem;color:var(--text);font-weight:600;min-width:200px}
+.demo-stop{padding:.3rem .8rem;font-size:.75rem;border-radius:6px;border:1px solid var(--red);background:transparent;color:var(--red);cursor:pointer;font-weight:600;transition:all .2s}
+.demo-stop:hover{background:var(--red);color:#fff}
+
 @media(max-width:700px){.disk-grid{grid-template-columns:repeat(16,1fr)}.col{min-width:100%}}
 </style>
 </head>
 <body>
+
+<div class="demo-bar" id="demoBar">
+  <span style="font-size:.9rem">🎬</span>
+  <div class="demo-progress"><div class="demo-fill" id="demoFill"></div></div>
+  <div class="demo-step" id="demoStep">准备中...</div>
+  <button class="demo-stop" onclick="stopDemo()">停止</button>
+</div>
 
 <div class="header">
   <h1>操作系统算法可视化模拟器</h1>
@@ -209,6 +244,9 @@ label{font-size:.82rem;color:var(--text2);font-weight:500}
     <button class="tab" data-tab="sched">进程调度</button>
     <button class="tab" data-tab="dead">死锁处理</button>
     <button class="tab" data-tab="sync">同步与通信</button>
+  </div>
+  <div style="display:flex;gap:.5rem;margin-top:.3rem">
+    <button class="btn btn-demo" onclick="startDemoTour()" id="demoTourBtn">🎬 一键演示</button>
   </div>
 </div>
 
@@ -252,6 +290,15 @@ label{font-size:.82rem;color:var(--text2);font-weight:500}
         <div style="display:flex;gap:.5rem">
           <button class="btn btn-demo" onclick="loadDiskSample()">📦 加载示例数据</button>
           <button class="btn btn-s" onclick="showConflictDemo()">🔒 冲突演示</button>
+        </div>
+        <label class="cmd-toggle"><input type="checkbox" id="cmdModeToggle" onchange="cmdModeChanged()">进程模式（文件操作生成命令进程，经调度后执行）</label>
+        <div class="cmd-queue" id="cmdQueue" style="display:none">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+            <span style="font-size:.78rem;color:var(--text2);font-weight:600">命令进程队列</span>
+            <button class="cmd-dispatch-btn" onclick="cmdDispatchAll()">⏵ 调度全部</button>
+          </div>
+          <div id="cmdQueueList"></div>
+          <div id="cmdQueueEmpty" style="font-size:.78rem;color:var(--text2);text-align:center;padding:.5rem">队列为空，请执行文件操作</div>
         </div>
         <div id="fileContent" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.5rem;font-size:.78rem;min-height:40px;color:var(--text2);display:none;max-height:300px;overflow-y:auto"></div>
       </div>
@@ -1803,6 +1850,209 @@ function pipeReset(){
 
 // Initialize pipe
 pipeRender();
+
+// ===== COMMAND PROCESS MODE =====
+let cmdQueue=[];    // 命令进程队列
+let cmdIdCounter=0; // 进程 ID 计数器
+let cmdModeOn=false;
+
+function cmdModeChanged(){
+  cmdModeOn=$('cmdModeToggle').checked;
+  const q=$('cmdQueue');
+  q.style.display=cmdModeOn?'block':'none';
+  if(cmdModeOn) q.classList.add('active');
+  else q.classList.remove('active');
+  addLog('diskLog',`<span style="color:var(--cyan)">${cmdModeOn?'✓ 进程模式已开启：文件操作将生成命令进程':'✗ 进程模式已关闭：文件操作直接执行'}</span>`);
+}
+
+function cmdEnqueue(action,label){
+  const id=++cmdIdCounter;
+  cmdQueue.push({id,action,label,status:'ready'});
+  cmdRender();
+  addLog('diskLog',`<span style="color:var(--yellow)">⎆ 命令进程 P${id} 入队: ${label} [Ready]</span>`);
+}
+
+function cmdRender(){
+  const list=$('cmdQueueList');
+  const empty=$('cmdQueueEmpty');
+  if(cmdQueue.length===0){list.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  let html='';
+  cmdQueue.forEach(c=>{
+    const statusText=c.status==='ready'?'Ready':c.status==='running'?'Running':'Done';
+    html+=`<div class="cmd-node ${c.status}">
+      <div class="cmd-status-dot"></div>
+      <div class="cmd-info"><span class="cmd-id">P${c.id}</span> ${c.label}</div>
+      <span style="font-size:.72rem;min-width:50px;text-align:right;font-weight:600">${statusText}</span>
+      ${c.status==='ready'?`<button class="cmd-dispatch-btn" onclick="cmdDispatchOne(${c.id})">调度</button>`:''}
+    </div>`;
+  });
+  list.innerHTML=html;
+}
+
+async function cmdDispatchOne(id){
+  const cmd=cmdQueue.find(c=>c.id===id);
+  if(!cmd||cmd.status!=='ready')return;
+  // Ready → Running
+  cmd.status='running';cmdRender();
+  addLog('diskLog',`<span style="color:var(--green)">▶ P${cmd.id} 调度执行中: ${cmd.label} [Running]</span>`);
+  // Simulate scheduling delay
+  await new Promise(r=>setTimeout(r,1200));
+  // Execute the actual file operation
+  try{cmdExecute(cmd);}catch(e){addLog('diskLog',`<span style="color:var(--red)">P${cmd.id} 执行失败: ${e.message}</span>`);}
+  // Running → Done
+  cmd.status='done';cmdRender();
+  addLog('diskLog',`<span style="color:var(--text2)">✓ P${cmd.id} 完成: ${cmd.label} [Done]</span>`);
+}
+
+async function cmdDispatchAll(){
+  const ready=cmdQueue.filter(c=>c.status==='ready');
+  for(const cmd of ready){
+    await cmdDispatchOne(cmd.id);
+    await new Promise(r=>setTimeout(r,400));
+  }
+}
+
+function cmdExecute(cmd){
+  switch(cmd.action){
+    case 'create': diskCreateFile(); break;
+    case 'delete': diskDeleteFile(); break;
+    case 'view':   diskViewFile(); break;
+    case 'edit':   diskEditFile(); break;
+    default: addLog('diskLog',`<span style="color:var(--red)">未知操作: ${cmd.action}</span>`);
+  }
+}
+
+// Override file operation buttons to support command mode
+const _origCreate=diskCreateFile, _origDelete=diskDeleteFile, _origView=diskViewFile, _origEdit=diskEditFile;
+
+// Wrap the onclick handlers on the buttons
+(function(){
+  const btns=document.querySelectorAll('#panel-disk .btn');
+  const map={'新建文件':'create','删除文件':'delete','查看内容':'view','修改内容':'edit'};
+  const labelMap={'create':'创建文件','delete':'删除文件','view':'查看文件','edit':'修改文件'};
+  const origFn={create:_origCreate,delete:_origDelete,view:_origView,edit:_origEdit};
+  btns.forEach(btn=>{
+    const act=map[btn.textContent.trim()];
+    if(act){
+      btn.onclick=function(){
+        if(cmdModeOn){
+          const name=($('newFileName').value.trim())||$('newFileName').placeholder;
+          cmdEnqueue(act, labelMap[act]+' '+name);
+        } else {
+          origFn[act]();
+        }
+      };
+    }
+  });
+})();
+
+// ===== DEMO TOUR =====
+let demoRunning=false;
+let demoAbort=false;
+
+async function demoWait(ms){
+  for(let i=0;i<ms/100;i++){
+    if(demoAbort) throw new Error('aborted');
+    await new Promise(r=>setTimeout(r,100));
+  }
+}
+
+function switchTab(name){
+  const tabs=document.querySelectorAll('.tab');
+  const panels=document.querySelectorAll('.panel');
+  tabs.forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+  panels.forEach(p=>p.classList.toggle('active',p.id==='panel-'+name));
+}
+
+function demoUpdate(step,total,text){
+  $('demoFill').style.width=Math.round(step/total*100)+'%';
+  $('demoStep').textContent=`Step ${step}/${total}: ${text}`;
+}
+
+async function startDemoTour(){
+  if(demoRunning){return;}
+  demoRunning=true;demoAbort=false;
+  $('demoBar').classList.add('visible');
+  $('demoTourBtn').disabled=true;
+  $('demoTourBtn').textContent='⏵ 演示中...';
+  const total=6;
+
+  try{
+    // Step 1: Disk - load sample data
+    demoUpdate(1,total,'加载磁盘示例数据');
+    switchTab('disk');
+    await demoWait(2000);
+    loadDiskSample();
+    addLog('diskLog','<span style="color:var(--cyan)">🎬 [演示] 已加载磁盘示例数据 (4个文件)</span>');
+    await demoWait(4000);
+
+    // Step 2: Disk - view readme.txt (triggers buffer animation)
+    demoUpdate(2,total,'查看文件内容 (缓冲页加载)');
+    selectedFile='readme.txt';
+    diskViewFile();
+    addLog('diskLog','<span style="color:var(--cyan)">🎬 [演示] 查看 readme.txt → 触发缓冲页加载动画</span>');
+    await demoWait(5000);
+    closeFileView();
+
+    // Step 3: Page Replacement - generate + compare
+    demoUpdate(3,total,'页面置换算法对比');
+    switchTab('page');
+    await demoWait(1500);
+    pageGenerate();
+    await demoWait(3000);
+    pageCompareAlgorithms();
+    addLog('pageLog','<span style="color:var(--cyan)">🎬 [演示] 5种算法缺页率对比完成</span>');
+    await demoWait(4000);
+
+    // Step 4: Scheduling - load sample + RR
+    demoUpdate(4,total,'进程调度 (RR轮转)');
+    switchTab('sched');
+    await demoWait(1500);
+    loadSchedSample();
+    await demoWait(2000);
+    schedRun();
+    addLog('schedLog','<span style="color:var(--cyan)">🎬 [演示] RR调度执行完成</span>');
+    await demoWait(4000);
+
+    // Step 5: Deadlock - load + find safe sequence
+    demoUpdate(5,total,'银行家算法 (安全序列)');
+    switchTab('dead');
+    await demoWait(1500);
+    loadBankSample();
+    await demoWait(2000);
+    bankFindSafe();
+    addLog('deadLog','<span style="color:var(--cyan)">🎬 [演示] 安全序列查找完成</span>');
+    await demoWait(4000);
+
+    // Step 6: Sync - producer consumer
+    demoUpdate(6,total,'生产者-消费者同步');
+    switchTab('sync');
+    await demoWait(1500);
+    syncStart();
+    addLog('syncLog','<span style="color:var(--cyan)">🎬 [演示] 生产者-消费者模拟已启动</span>');
+    await demoWait(4000);
+
+    // Done
+    demoUpdate(total,total,'✓ 演示完成！');
+    await demoWait(3000);
+
+  } catch(e){
+    if(e.message==='aborted'){
+      $('demoStep').textContent='演示已停止';
+    }
+  }
+
+  demoRunning=false;
+  $('demoBar').classList.remove('visible');
+  $('demoTourBtn').disabled=false;
+  $('demoTourBtn').textContent='🎬 一键演示';
+  switchTab('disk');
+}
+
+function stopDemo(){
+  demoAbort=true;
+}
 </script>
 </body>
 </html>

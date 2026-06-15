@@ -225,8 +225,8 @@ footer .links a:hover{color:var(--accent);transform:translateY(-2px)}
     <div class="card fade-up">
       <div class="card-icon" style="background:var(--grad1)">💾</div>
       <h3>磁盘与文件管理</h3>
-      <p>模拟 M×N 磁盘（64B×1024块），实现二级目录（MFD→UFD）、连续存储分配、空闲盘区链与位示图(Bitmap)双模式管理。支持文件 FCB/iNode 详情查看、FAT 链表视图、文件访问冲突演示，含内存缓冲页（LRU 置换）与文件保护机制。</p>
-      <div class="card-tags"><span class="card-tag">二级目录</span><span class="card-tag">连续存储</span><span class="card-tag">位示图</span><span class="card-tag">FAT 链表</span><span class="card-tag">FCB/iNode</span><span class="card-tag">LRU 缓冲页</span><span class="card-tag">文件保护</span></div>
+      <p>模拟 M×N 磁盘（64B×1024块），实现二级目录（MFD→UFD）、连续存储分配、空闲盘区链与位示图(Bitmap)双模式管理。支持文件 FCB/iNode 详情查看、FAT 链表视图、文件访问冲突演示，含内存缓冲页（LRU 置换）、文件保护机制与命令进程调度模式（文件操作生成命令进程，经调度后执行）。</p>
+      <div class="card-tags"><span class="card-tag">二级目录</span><span class="card-tag">连续存储</span><span class="card-tag">位示图</span><span class="card-tag">FAT 链表</span><span class="card-tag">FCB/iNode</span><span class="card-tag">LRU 缓冲页</span><span class="card-tag">文件保护</span><span class="card-tag">命令进程</span></div>
     </div>
 
     <div class="card fade-up">
@@ -373,6 +373,16 @@ footer .links a:hover{color:var(--accent);transform:translateY(-2px)}
       <h4>Canvas 可视化 — 资源分配图 & 甘特图</h4>
       <p>死锁模块使用 Canvas 2D API 绘制进程-资源有向图，进程调度模块动态生成甘特图 SVG 可视化。</p>
     </div>
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <h4>导览演示模式 — Demo Tour</h4>
+      <p>一键启动自动导览，按顺序切换 6 个步骤（磁盘→页面置换→进程调度→银行家→同步），每步自动加载示例数据并执行核心操作，带进度条与步骤说明，适合答辩现场展示。</p>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <h4>命令进程调度 — Command Process</h4>
+      <p>磁盘面板可开启“进程模式”，文件操作不直接执行，而是生成命令进程节点（Ready→Running→Done），经调度后执行，实现文件系统与进程管理的耦合展示。</p>
+    </div>
   </div>
 </section>
 
@@ -416,7 +426,7 @@ footer .links a:hover{color:var(--accent);transform:translateY(-2px)}
   <div class="cards" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">
     <div class="card fade-up">
       <h3 style="font-size:.95rem">🔧 命令进程</h3>
-      <p>每个文件操作命令作为独立进程运行，支持并发执行与调度。</p>
+      <p>磁盘面板可开启进程模式，文件操作（新建/删除/查看/修改）生成命令进程节点，状态从 Ready→Running→Done，经手动或自动调度后执行，展示文件系统与进程管理的耦合。</p>
     </div>
     <div class="card fade-up">
       <h3 style="font-size:.95rem">📡 进程通信</h3>
