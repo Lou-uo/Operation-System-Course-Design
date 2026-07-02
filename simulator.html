@@ -157,8 +157,31 @@ html,body{height:100%;overflow:hidden;font-family:var(--font);background:var(--b
 .console-panel .console-header .console-arrow{font-size:8px;transition:transform .2s}
 .console-panel.collapsed .console-body{display:none}
 .console-panel.collapsed .console-arrow{transform:rotate(-90deg)}
-.console-panel .console-body{height:120px;overflow-y:auto;padding:6px 12px;font-family:var(--font-mono);font-size:11px;line-height:1.6;background:var(--win-title);color:var(--text2)}
+.console-panel .console-body{height:120px;overflow-y:auto;padding:6px 12px;font-family:var(--font-mono);font-size:11px;line-height:1.6;background:var(--bg);color:var(--text2)}
 .console-panel .console-body .log-line{padding:1px 0;white-space:pre-wrap;word-break:break-all}
+.console-panel .console-body .log-line.cmd-input{color:var(--cyan);font-weight:600}
+.console-panel .console-body .log-line.cmd-out{color:var(--text)}
+.console-panel .console-body .log-line.cmd-err{color:var(--red);font-weight:500}
+.console-panel .console-body .log-line.cmd-table{color:var(--text);font-family:var(--font-mono);white-space:pre}
+.cmd-bar{display:flex;align-items:center;padding:3px 12px;background:var(--bg2);border-top:1px solid var(--border);flex-shrink:0;gap:6px}
+.cmd-bar .cmd-prompt{color:var(--accent);font-family:var(--font-mono);font-size:11px;font-weight:600;white-space:nowrap}
+.cmd-bar .cmd-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:3px 8px;color:var(--text);font-family:var(--font-mono);font-size:11px;outline:none}
+.cmd-bar .cmd-input:focus{border-color:var(--accent)}
+/* Help manual */
+.help-index-item{padding:8px 14px;font-size:12px;cursor:pointer;border-left:3px solid transparent;color:var(--text2);transition:all .15s}
+.help-index-item:hover{background:var(--win-hover);color:var(--text)}
+.help-index-item.active{border-left-color:var(--accent);background:var(--win-select);color:var(--text);font-weight:600}
+.help-section{margin-bottom:20px}
+.help-section h4{font-size:14px;color:var(--accent);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+.help-section p{font-size:12px;color:var(--text);line-height:1.8;margin-bottom:6px}
+.help-section ul{padding-left:20px;margin:6px 0}
+.help-section ul li{font-size:12px;color:var(--text2);line-height:1.8;margin:2px 0}
+.help-section .key{display:inline-block;padding:1px 7px;font-size:10px;font-weight:600;background:var(--bg);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--font-mono)}
+.help-section .cmd{font-family:var(--font-mono);color:var(--cyan);font-size:11px;background:var(--bg);padding:1px 6px;border-radius:3px}
+.help-section .tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600}
+.help-section .tag-new{background:rgba(22,198,12,.15);color:var(--green)}
+.help-section .tag-hot{background:rgba(252,225,0,.15);color:var(--yellow)}
+.help-section .tag-pro{background:rgba(99,102,241,.15);color:#a78bfa}
 .console-panel .console-body .log-line .log-ts{color:#666;margin-right:8px}
 .console-panel .console-body .log-line.log-ok{color:var(--green)}
 .console-panel .console-body .log-line.log-err{color:var(--red)}
@@ -416,6 +439,8 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:12px 0}
   </div>
   <div class="menu-item" data-menu="help">帮助
     <div class="menu-dropdown">
+      <div class="dd-item" onclick="showHelpManual()"><span>📖</span> 使用文档</div>
+      <div class="dd-sep"></div>
       <div class="dd-item" onclick="startDemoTour()"><span>🎬</span> 一键演示</div>
       <div class="dd-item" onclick="showConflictDemo()"><span>🔒</span> 文件冲突演示</div>
     </div>
@@ -505,6 +530,11 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:12px 0}
     <span style="margin-left:auto;font-size:10px;color:var(--text2)" id="consoleCount">0 条</span>
   </div>
   <div class="console-body" id="consoleBody"></div>
+  <div class="cmd-bar">
+    <span class="cmd-prompt">C:\OS&gt;</span>
+    <input class="cmd-input" id="cmdInput" placeholder="输入命令 (dir/create/cat/delete/modify/help)" onkeydown="if(event.key==='Enter')execCommand()">
+    <button class="btn btn-s" style="padding:2px 8px;font-size:10px" onclick="execCommand()">↵ 执行</button>
+  </div>
 </div>
 
 </div><!-- end explorer -->
@@ -516,9 +546,23 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:12px 0}
   <div class="modal-box small">
     <div class="modal-header"><h3>📄 新建文件</h3><button class="modal-close" onclick="closeModal('newFileModal')">✕</button></div>
     <div class="modal-body">
-      <label>文件名</label><input id="nfName" placeholder="如: readme.txt" style="width:100%">
-      <label class="mt-8">所属用户</label>
-      <select id="nfOwner" style="width:100%"><option value="user1">user1</option><option value="user2">user2</option><option value="system">system</option></select>
+      <div style="font-size:10px;color:var(--accent);margin-bottom:8px;padding:4px 8px;background:rgba(59,120,255,.08);border-radius:4px">📐 数据组织: 连续分配 | 🗺️ 空闲管理: 位示图法(首次适应) | 📑 缓冲策略: LRU置换</div>
+      <div class="input-row"><div style="flex:1"><label>文件名</label><input id="nfName" placeholder="如: readme.txt" style="width:100%"></div>
+      <div style="width:90px"><label>类型</label><select id="nfType" onchange="nfTypeChanged()" style="width:100%">
+        <option value=".txt">📄 .txt</option><option value=".pdf">📕 .pdf</option><option value=".pptx">📊 .pptx</option>
+        <option value=".docx">📝 .docx</option><option value=".xlsx">📗 .xlsx</option><option value=".exe">⚡ .exe</option>
+        <option value="">(无)</option></select></div></div>
+      <div id="exeTemplateRow" style="display:none" class="mt-8">
+        <label>.exe 用途模板</label>
+        <select id="nfExeTemplate" onchange="nfExeTemplateChanged()" style="width:100%">
+          <option value="">— 选择模板 —</option>
+          <option value="printer.exe">🖨️ printer.exe — 打印调度</option>
+          <option value="paint.exe">🎨 paint.exe — 画图程序</option>
+          <option value="notepad.exe">📝 notepad.exe — 记事本</option>
+          <option value="calc.exe">🧮 calc.exe — 计算器</option>
+        </select>
+      </div>
+      <label class="mt-8">所属用户 <span style="font-weight:400;color:var(--text2)">(可自定义)</span></label><input id="nfOwner" placeholder="如: user1、admin、张三" style="width:100%">
       <label class="mt-8">预分配块数</label><input id="nfSize" type="number" min="1" max="50" value="3" style="width:100%">
       <label class="mt-8">文件内容（可选，将按64B拆分）</label><textarea id="nfContent" rows="3" style="width:100%"></textarea>
     </div>
@@ -557,7 +601,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:12px 0}
 <!-- Bitmap Modal -->
 <div class="modal-overlay" id="bitmapModal">
   <div class="modal-box wide">
-    <div class="modal-header"><h3>🗺️ 位示图 (Bitmap) — 磁盘空间分配全貌</h3><button class="modal-close" onclick="closeModal('bitmapModal')">✕</button></div>
+    <div class="modal-header"><h3>🗺️ 位示图 (Bitmap) — 空闲盘块管理主方式</h3><button class="modal-close" onclick="closeModal('bitmapModal')">✕</button></div>
     <div class="modal-body">
       <div style="display:flex;gap:12px;margin-bottom:8px;font-size:11px;color:var(--text2);flex-wrap:wrap">
         <span class="inline-flex"><span style="width:10px;height:10px;background:rgba(22,198,12,.3);border-radius:2px"></span> 空闲</span>
@@ -566,7 +610,7 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:12px 0}
         <span class="inline-flex"><span style="width:10px;height:10px;background:#8b5cf6;border-radius:2px"></span> 元数据</span>
       </div>
       <div class="bitmap-grid" id="bitmapGrid"></div>
-      <div class="mt-8 text-sm color-text2">共 1024 块 (64×16)，hover 查看块详情</div>
+      <div class="mt-8 text-sm color-text2">共 1024 块 (64×16)，hover 查看块详情。空闲块管理方式：<b style="color:var(--green)">位示图法</b> — 分配时扫描位示图查找首个连续空闲区间（首次适应）</div>
     </div>
   </div>
 </div>
@@ -574,16 +618,23 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:12px 0}
 <!-- FAT Modal -->
 <div class="modal-overlay" id="fatModal">
   <div class="modal-box wide">
-    <div class="modal-header"><h3>🔗 FAT 链表视图</h3><button class="modal-close" onclick="closeModal('fatModal')">✕</button></div>
+    <div class="modal-header"><h3>🔗 FAT 链表视图 (连续分配的FAT表达)</h3><button class="modal-close" onclick="closeModal('fatModal')">✕</button></div>
     <div class="modal-body" id="fatContent"></div>
+    <div class="modal-footer" style="font-size:10px;color:var(--text2)">注：底层采用连续分配，FAT表由连续块号推导得出（第i块→第i+1块→EOF）</div>
   </div>
 </div>
 
 <!-- Free Areas Modal -->
 <div class="modal-overlay" id="freeAreasModal">
   <div class="modal-box medium">
-    <div class="modal-header"><h3>📊 空闲盘区链</h3><button class="modal-close" onclick="closeModal('freeAreasModal')">✕</button></div>
+    <div class="modal-header"><h3>📊 空闲盘区链 (位示图派生态)</h3><button class="modal-close" onclick="closeModal('freeAreasModal')">✕</button></div>
     <div class="modal-body" id="freeAreasContent"></div>
+    <div class="modal-footer" style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:10px;color:var(--text2)">分配策略: <select id="allocStrategySel" onchange="allocStrategy=this.value;log('分配策略切换为: '+this.options[this.selectedIndex].text,'info')" style="font-size:10px;padding:2px 6px">
+        <option value="first-fit">First-Fit (首次适应)</option><option value="best-fit">Best-Fit (最佳适应)</option>
+      </select></div>
+      <div style="font-size:10px;color:var(--text2)">链式结构: 空闲节点 → ... → null</div>
+    </div>
   </div>
 </div>
 
@@ -593,7 +644,10 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:12px 0}
     <div class="modal-header"><h3>📑 内存缓冲页 (M×K = 64B×8)</h3><button class="modal-close" onclick="closeModal('bufferModal')">✕</button></div>
     <div class="modal-body">
       <div class="buf-pages" id="bufPagesView"></div>
-      <div class="mt-8 text-sm">置换策略: <span style="color:var(--accent)">LRU</span> | 写回次数: <span id="bufWbView" style="color:var(--yellow)">0</span></div>
+      <div class="mt-8 text-sm flex-between">
+        <span>置换策略: <span style="color:var(--accent)">LRU</span> | 写回: <span id="bufWbView" style="color:var(--yellow)">0</span></span>
+        <span>命中: <b style="color:var(--green)" id="bufHitView">0</b> | 缺失: <b style="color:var(--red)" id="bufMissView">0</b> | 命中率: <b style="color:var(--accent)" id="bufRateView">0%</b></span>
+      </div>
     </div>
   </div>
 </div>
@@ -753,6 +807,23 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:12px 0}
   </div>
 </div>
 
+<!-- Add Print Job Dialog -->
+<div class="modal-overlay" id="addJobModal">
+  <div class="modal-box small">
+    <div class="modal-header"><h3>📄 添加打印作业</h3><button class="modal-close" onclick="closeModal('addJobModal')">✕</button></div>
+    <div class="modal-body">
+      <label>文件名</label><input id="ajName" value="report.pdf" style="width:100%">
+      <label class="mt-8">文件地址 <span style="font-weight:400;color:var(--text2)">(所在目录，区分同名文件)</span></label><input id="ajPath" placeholder="如: user1/文档、C:\docs" value="C:\docs" style="width:100%">
+      <label class="mt-8">页数</label><input id="ajSize" type="number" value="4" min="1" max="20" style="width:100%">
+      <label class="mt-8">优先级 <span style="font-weight:400;color:var(--text2)">(仅优先级算法使用，值越小优先级越高)</span></label><input id="ajPriority" type="number" value="3" min="1" max="10" style="width:100%">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-s" onclick="closeModal('addJobModal')">取消</button>
+      <button class="btn btn-p" onclick="addPrintJob()">添加</button>
+    </div>
+  </div>
+</div>
+
 <!-- Print Scheduling Modal -->
 <div class="modal-overlay" id="printSchedModal">
   <div class="modal-box wide">
@@ -760,18 +831,95 @@ hr.divider{border:none;border-top:1px solid var(--border);margin:12px 0}
     <div class="modal-body">
       <div class="input-row mb-8">
         <div><label>调度算法</label><select id="printAlgo"><option value="fcfs">FCFS 先来先服务</option><option value="sjf">SJF 短作业优先</option><option value="rr">RR 轮转</option><option value="priority">优先级</option></select></div>
-        <button class="btn btn-p" onclick="addPrintJob()">📄 添加打印作业</button>
+        <div id="printRRBox" style="display:none"><label>时间片(页)</label><input id="printRRQuantum" type="number" value="2" min="1" max="10" style="width:55px"></div>
+        <button class="btn btn-p" onclick="showAddJobDialog()">📄 添加打印作业</button>
         <button class="btn btn-g" onclick="runPrintSched()">▶ 执行打印调度</button>
         <button class="btn btn-s" onclick="resetPrintSched()">重置</button>
-        <button class="btn btn-s" onclick="quickPrintDemo()">📦 快速演示 (2个PDF)</button>
+        <button class="btn btn-s" onclick="quickPrintDemo()">📦 快速演示</button>
       </div>
-      <table class="data-table" id="printTable"><thead><tr><th>作业</th><th>文件名</th><th>页数(块)</th><th>优先级</th><th>状态</th><th>进度</th></tr></thead><tbody></tbody></table>
+      <table class="data-table" id="printTable"><thead><tr><th>作业</th><th>文件名</th><th>地址</th><th>页数</th><th>优先级</th><th>状态</th><th>进度</th></tr></thead><tbody></tbody></table>
       <div class="mt-8"><div class="text-sm color-text2 mb-8">CPU 甘特图 (打印时间线)</div><div id="printGanttContainer"></div></div>
       <div class="input-row mt-8">
         <span class="text-sm">平均等待: <b id="printAvgWait" class="color-accent">-</b></span>
         <span class="text-sm">平均周转: <b id="printAvgTurn" class="color-accent">-</b></span>
       </div>
       <div class="proc-list mt-8" id="printProcNodes"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="helpModal">
+  <div class="modal-box wide" style="max-height:80vh">
+    <div class="modal-header"><h3>📖 使用文档 — 操作系统算法可视化模拟系统</h3><button class="modal-close" onclick="closeModal('helpModal')">✕</button></div>
+    <div class="modal-body" id="helpContent" style="overflow-y:auto;padding:0">
+      <div style="display:flex;border-bottom:1px solid var(--border)">
+        <div style="width:200px;min-width:200px;border-right:1px solid var(--border);padding:8px 0;overflow-y:auto;background:var(--bg2)" id="helpIndex"></div>
+        <div style="flex:1;padding:16px;overflow-y:auto;max-height:65vh" id="helpDocText"></div>
+      </div>
+    </div>
+    <div class="modal-footer" style="font-size:10px;color:var(--text2)">操作系统课程设计 — 文件系统与算法可视化模拟系统 v2.0</div>
+  </div>
+</div>
+
+<!-- Paint Modal -->
+<div class="modal-overlay" id="paintModal">
+  <div class="modal-box" style="width:700px">
+    <div class="modal-header"><h3>🎨 画图 — 无标题</h3><button class="modal-close" onclick="closeModal('paintModal')">✕</button></div>
+    <div class="modal-body" style="padding:0">
+      <div style="display:flex;gap:6px;padding:6px 12px;border-bottom:1px solid var(--border);flex-wrap:wrap">
+        <button class="btn btn-s" onclick="paintLine()" title="画笔">✏️ 画笔</button>
+        <button class="btn btn-s" onclick="paintRect()" title="矩形">⬜ 矩形</button>
+        <button class="btn btn-s" onclick="paintClear()" title="清空">🗑️ 清空</button>
+        <span style="color:var(--text2);font-size:10px;margin:auto 0">颜色:</span>
+        <input type="color" id="paintColor" value="#3b78ff" style="width:28px;height:24px;padding:0;border:none" onchange="paintColor=this.value">
+        <span style="flex:1"></span>
+        <button class="btn btn-p" onclick="paintSave()">💾 保存到磁盘</button>
+        <button class="btn btn-s" onclick="paintShowBehind()" style="border-color:var(--accent);color:var(--accent)">🔍 查看磁盘分配</button>
+      </div>
+      <canvas id="paintCanvas" width="660" height="400" style="width:100%;background:#fff;cursor:crosshair"
+        onmousedown="paintMouseDown(event)" onmousemove="paintMouseMove(event)" onmouseup="paintMouseUp(event)" onmouseleave="paintMouseUp(event)"></canvas>
+    </div>
+    <div class="modal-footer" style="font-size:10px;color:var(--text2)">在画布上绘制图形 → 保存触发位示图分配演示 | 右键画布查看当前缓冲状态</div>
+  </div>
+</div>
+
+<!-- Notepad Modal -->
+<div class="modal-overlay" id="notepadModal">
+  <div class="modal-box" style="width:600px">
+    <div class="modal-header"><h3>📝 记事本 — 无标题</h3><button class="modal-close" onclick="closeModal('notepadModal')">✕</button></div>
+    <div class="modal-body">
+      <textarea id="notepadText" rows="18" style="width:100%;font-family:var(--font-mono);font-size:12px;resize:none" placeholder="在此输入文本..."></textarea>
+      <div class="mt-8 text-sm color-text2 flex-between">
+        <span>字符数: <b id="notepadCharCount" class="color-accent">0</b> | 占用块数: <b id="notepadBlockEst" class="color-accent">0</b></span>
+        <span>自动保存到 64B 块</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-s" onclick="notepadShowBehind()" style="border-color:var(--accent);color:var(--accent)">🔍 查看缓冲页</button>
+      <span style="flex:1"></span>
+      <button class="btn btn-s" onclick="closeModal('notepadModal')">取消</button>
+      <button class="btn btn-p" onclick="notepadSave()">💾 保存到磁盘</button>
+    </div>
+  </div>
+</div>
+
+<!-- Calc Modal -->
+<div class="modal-overlay" id="calcModal">
+  <div class="modal-box small">
+    <div class="modal-header"><h3>🧮 计算器</h3><button class="modal-close" onclick="closeModal('calcModal')">✕</button></div>
+    <div class="modal-body" style="text-align:center">
+      <div id="calcDisplay" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px;font-size:22px;font-family:var(--font-mono);text-align:right;margin-bottom:10px;min-height:48px;color:var(--text)">0</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+        <button class="btn btn-s" onclick="calcInput('7')">7</button><button class="btn btn-s" onclick="calcInput('8')">8</button><button class="btn btn-s" onclick="calcInput('9')">9</button><button class="btn btn-s" onclick="calcInput('/')" style="color:var(--accent)">÷</button>
+        <button class="btn btn-s" onclick="calcInput('4')">4</button><button class="btn btn-s" onclick="calcInput('5')">5</button><button class="btn btn-s" onclick="calcInput('6')">6</button><button class="btn btn-s" onclick="calcInput('*')" style="color:var(--accent)">×</button>
+        <button class="btn btn-s" onclick="calcInput('1')">1</button><button class="btn btn-s" onclick="calcInput('2')">2</button><button class="btn btn-s" onclick="calcInput('3')">3</button><button class="btn btn-s" onclick="calcInput('-')" style="color:var(--accent)">−</button>
+        <button class="btn btn-s" onclick="calcInput('0')">0</button><button class="btn btn-s" onclick="calcInput('.')">.</button><button class="btn btn-p" onclick="calcCompute()">=</button><button class="btn btn-s" onclick="calcInput('+')" style="color:var(--accent)">+</button>
+      </div>
+      <div class="mt-8"><button class="btn btn-s" onclick="calcClear()">C 清除</button></div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between;font-size:10px;color:var(--text2)">
+      <span>运算结果通过共享内存传递</span>
+      <button class="btn btn-s" onclick="calcShowBehind()" style="border-color:var(--accent);color:var(--accent)">🔍 查看共享内存</button>
     </div>
   </div>
 </div>
@@ -802,11 +950,21 @@ const COLORS=['#3b78ff','#e83e8c','#16c60c','#fce100','#f03a17','#3a96dd','#a78b
 
 let diskBlocks=new Array(DISK_SIZE).fill(null);
 let files=[], freeAreas=[], selectedFile=null, fileInUse=null;
-let bufPages=new Array(BUF_SIZE).fill(null), bufAccessCounter=0, bufWritebacks=0;
+let bufPages=new Array(BUF_SIZE).fill(null), bufAccessCounter=0, bufWritebacks=0, bufHitCount=0, bufMissCount=0;
 let currentPath='user1', viewMode='detail', sortKey='name', sortAsc=true;
 let searchQuery='', isSearching=false;
 let cmdQueue=[], cmdIdCounter=0, cmdModeOn=false;
 let navHistory=[], navHistoryIdx=-1;
+let folders=[];
+// == concurrent control: mutex + wait queue ==
+let mutex={locked:false,owner:null},waitQueue=[];
+function lock(p){if(mutex.locked)return false;mutex.locked=true;mutex.owner=p;updateMutexUI();return true}
+function unlock(p){if(mutex.owner!==p)return;mutex.locked=false;mutex.owner=null;if(waitQueue.length>0){var n=waitQueue.shift();mutex.locked=true;mutex.owner=n.pid;log('unlock -> schedule '+n.pid,'sys');updateMutexUI();n.callback();unlock(n.pid)}else updateMutexUI()}
+function requestLock(p,cb){if(lock(p)){cb();unlock(p)}else{waitQueue.push({pid:p,callback:cb});log('  wait '+p+' queued (len:'+waitQueue.length+')','warn');updateMutexUI()}}
+function updateMutexUI(){var el=$('statSel');if(mutex.locked)el.innerHTML='lock:'+mutex.owner;else el.innerHTML='lock:free';if(waitQueue.length>0)el.innerHTML+=' wait:'+waitQueue.length}
+function exeIcon(name){const m={printer:'🖨️',paint:'🎨',notepad:'📝',calc:'🧮'};return m[name.replace('.exe','')]||'⚡'}
+function fileIcon(ext,name){if(ext==='exe')return exeIcon(name||'');const i={txt:'📄',pdf:'📕',csv:'📊',sys:'⚙️',png:'🖼️',pptx:'📊',docx:'📝',xlsx:'📗',html:'🌐',zip:'📦',jpg:'🖼️',gif:'🖼️',bmp:'🖼️'};return i[ext]||'📄'}
+// custom user-created folders
 
 // ============ UTILS ============
 const $=id=>document.getElementById(id);
@@ -829,6 +987,102 @@ function openModal(id){$(id).classList.add('show');}
 function closeModal(id){$(id).classList.remove('show');}
 function toggleConsole(){
   $('consolePanel').classList.toggle('collapsed');
+}
+
+// ============ COMMAND TERMINAL ============
+function execCommand(){
+  const input=$('cmdInput');if(!input)return;
+  const line=input.value.trim();if(!line)return;input.value='';
+  const parts=line.split(/\s+/);const cmd=parts[0].toLowerCase();const args=parts.slice(1);
+  log(`<span class="cmd-input">C:\\OS&gt; ${line}</span>`,'sys');
+  try{switch(cmd){
+    case 'dir':case 'ls':{
+      const user=args[0]||null;
+      let flist=user?files.filter(f=>f.owner===user):files;
+      if(flist.length===0){log('  目录为空','cmd-out');break}
+      log(`  文件名${' '.repeat(18)}创建日期${' '.repeat(6)}块数  权限    用户`,'cmd-table');
+      flist.forEach(f=>{log(`  ${(f.name+'                    ').slice(0,20)} ${f.time}  ${(f.size+'块').padStart(3)}   ${f.perm}  ${f.owner}`,'cmd-table')});
+      log(`  📊 共 ${flist.length} 个文件, 合计 ${flist.reduce((s,x)=>s+x.size,0)} 块`,'cmd-table');
+      break;
+    }
+    case 'cat':case 'view':{
+      if(!args[0]){log('  用法: cat <文件名>','cmd-err');break}
+      const f=files.find(x=>x.name===args[0]);
+      if(!f){log(`  错误: 文件 ${args[0]} 不存在`,'cmd-err');break}
+      log(`  📄 ${f.name} (${f.owner}) 块${f.start}~${f.start+f.size-1} ${f.size}块`,'cmd-table');
+      for(let i=0;i<f.size;i++){
+        const blockIdx=f.start+i;
+        const content=f.content&&f.content[i]?f.content[i].replace(/\n/g,'\\n'):'(空)';
+        log(`  块${blockIdx} [0x${blockIdx.toString(16).toUpperCase().padStart(4,'0')}]: ${content}`,'cmd-table');
+      }
+      selectFileInList(f.name);break;
+    }
+    case 'create':{
+      if(!args[0]){log('  用法: create <文件名> [块数] [用户]','cmd-err');break}
+      const name=args[0];const size=parseInt(args[1])||5;const owner=args[2]||'user1';
+      if(files.find(x=>x.name===name)){log(`  错误: 文件 ${name} 已存在`,'cmd-err');break}
+      $('nfName').value=name;$('nfOwner').value=owner;$('nfSize').value=size;$('nfContent').value='';
+      // Temporarily bypass command mode to create directly
+      const wasCmdMode=cmdModeOn;cmdModeOn=false;
+      diskCreateFile();
+      cmdModeOn=wasCmdMode;
+      break;
+    }
+    case 'delete':{
+      if(!args[0]){log('  用法: delete <文件名>','cmd-err');break}
+      const f=files.find(x=>x.name===args[0]);
+      if(!f){log(`  错误: 文件 ${args[0]} 不存在`,'cmd-err');break}
+      selectedFile=args[0];diskDeleteFile();break;
+    }
+    case 'modify':{
+      if(!args[0]){log('  用法: modify <文件名> [块号] [内容]','cmd-err');break}
+      const name=args[0];const f=files.find(x=>x.name===name);
+      if(!f){log(`  错误: 文件 ${name} 不存在`,'cmd-err');break}
+      if(args.length>=3){const blockIdx=parseInt(args[1]);const content=args.slice(2).join(' ');if(blockIdx>=0&&blockIdx<f.size){if(!f.content)f.content=[];f.content[blockIdx]=content;const bi=f.start+blockIdx;if(diskBlocks[bi])diskBlocks[bi].content=content;log(`  ✓ 块${bi} 内容已更新`,'ok')}else log(`  块号范围 0~${f.size-1}`,'cmd-err')}
+      else{selectedFile=name;diskEditFile()}
+      break;
+    }
+    case 'info':{
+      if(!args[0]){log('  用法: info <文件名>','cmd-err');break}
+      const f=files.find(x=>x.name===args[0]);
+      if(!f){log(`  错误: 文件 ${args[0]} 不存在`,'cmd-err');break}
+      log(`  📝 文件名: ${f.name}`,'cmd-table');log(`  👤 用户: ${f.owner}`,'cmd-table');
+      log(`  📅 创建时间: ${f.time}`,'cmd-table');log(`  🔒 权限: ${f.perm}`,'cmd-table');
+      log(`  📍 起始块: ${f.start}`,'cmd-table');log(`  📦 占用块数: ${f.size}`,'cmd-table');
+      log(`  📐 分配方式: 连续分配`,'cmd-table');log(`  🔄 状态: ${fileInUse===f.name?'使用中':'空闲'}`,'cmd-table');
+      log(`  🗺️ 位示图位置: 块${f.start}~${f.start+f.size-1}`,'cmd-table');
+      const usedBytes=f.content?f.content.reduce((s,c)=>s+(c?c.length:0),0):0;
+      log(`  💾 数据: ${usedBytes}B / ${f.size*64}B`,'cmd-table');
+      break;
+    }
+    case 'stat':{
+      const used=diskBlocks.filter(b=>b!==null).length;
+      const free=DISK_SIZE-used;
+      log(`  💾 磁盘: ${DISK_SIZE}块, 已用${used}块, 空闲${free}块 (${(free/DISK_SIZE*100).toFixed(1)}%)`,'cmd-table');
+      log(`  📄 文件: ${files.length}个`,'cmd-table');
+      log(`  📑 缓冲: ${bufPages.filter(p=>p!==null).length}/${BUF_SIZE}页已用, 写回${bufWritebacks}次`,'cmd-table');
+      log(`  🔗 空闲盘区: ${freeAreas.length}个连续区域`,'cmd-table');
+      break;
+    }
+    case 'help':{
+      log('  ═══════════════ 可用命令 ═══════════════' ,'cmd-table');
+      log('  dir [用户]      — 列出目录信息 (同ls)','cmd-table');
+      log('  cat <文件名>     — 查看文件内容 (同view)','cmd-table');
+      log('  create <名> [块] [用户] — 新建文件','cmd-table');
+      log('  delete <文件名>  — 删除文件','cmd-table');
+      log('  modify <名> [块号] [内容] — 修改文件','cmd-table');
+      log('  info <文件名>    — 查看FCB详细信息','cmd-table');
+      log('  stat            — 磁盘/系统状态','cmd-table');
+      log('  help            — 显示此帮助','cmd-table');
+      log('  clear           — 清空控制台','cmd-table');
+      log('  ═══ 右键文件也可查看背后原理(FAT/Bitmap/FCB) ═══','cmd-table');
+      break;
+    }
+    case 'clear':{$('consoleBody').innerHTML='';$('consoleCount').textContent='0 条';break}
+    default:log(`  未知命令: ${cmd}，输入 help 查看可用命令`,'cmd-err')
+  }}catch(e){log(`  执行错误: ${e.message}`,'cmd-err')}
+  if($('consolePanel').classList.contains('collapsed'))toggleConsole();
+  $('consoleBody').scrollTop=$('consoleBody').scrollHeight;
 }
 
 // ============ THEME ============
@@ -916,11 +1170,30 @@ function diskInit(){
   for(let i=0;i<8;i++) diskBlocks[i]={type:'dir',file:'MFD'};
   for(let i=8;i<16;i++) diskBlocks[i]={type:'dir',file:'UFD'};
   for(let i=16;i<24;i++) diskBlocks[i]={type:'meta',file:'FreeTable'};
-  files=[];bufPages=new Array(BUF_SIZE).fill(null);
-  bufAccessCounter=0;bufWritebacks=0;
-  updateFreeAreas();renderAll();
-  log('磁盘初始化完成: 1024个盘块就绪, 前24块为系统保留区','sys');
+  files=[];folders=['user1','user2','system'];bufPages=new Array(BUF_SIZE).fill(null);
+  bufAccessCounter=0;bufWritebacks=0;bufHitCount=0;bufMissCount=0;
+  updateFreeAreas();
+  // Auto-create REAL application .exe files
+  createExeFile('printer.exe','system','PRINTER:打印作业调度程序');
+  createExeFile('paint.exe','system','PAINT:画图程序');
+  createExeFile('notepad.exe','system','NOTEPAD:文本编辑器');
+  createExeFile('calc.exe','system','CALC:计算器');
+  renderAll();
+  log('磁盘初始化完成: 1024个盘块就绪','sys');
+  log('⚡ 系统应用已就绪: printer.exe, paint.exe, notepad.exe, calc.exe','sys');
   updateStatusBar();
+}
+function createExeFile(name,owner,content){
+  // Helper to create a system .exe file at a fixed position
+  const existing=files.findIndex(f=>f.name===name);
+  if(existing!==-1)return; // already exists
+  const size=1;
+  let start=bitmapFindFree(size);
+  if(start===-1)return;
+  for(let i=start;i<start+size;i++) diskBlocks[i]={type:'data',file:name,content:content};
+  const now=new Date(),time=`${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}`;
+  files.push({name,owner,time,start,size,perm:'rwxr-xr-x',content:[content]});
+  updateFreeAreas();
 }
 function updateFreeAreas(){
   freeAreas=[];let start=-1,cnt=0;
@@ -929,6 +1202,38 @@ function updateFreeAreas(){
     else{if(start!==-1){freeAreas.push({start,count:cnt});start=-1;cnt=0}}
   }
   if(start!==-1) freeAreas.push({start,count:cnt});
+}
+// ====== 空闲盘区链分配算法 ======
+let allocStrategy='first-fit'; // first-fit | best-fit
+
+function allocateFirstFit(size){
+  for(let i=0;i<freeAreas.length;i++){
+    const a=freeAreas[i];
+    if(a.count>=size){
+      log(`  🔍 First-Fit扫描: [${a.start}:${a.count}] ≥ 需要${size}块 → 选中`,'sys');
+      const alloc=a.start; a.start+=size; a.count-=size;
+      if(a.count===0)freeAreas.splice(i,1);
+      return alloc;
+    }
+    log(`  🔍 First-Fit扫描: [${a.start}:${a.count}] < 需要${size}块 → 跳过`,'sys');
+  }
+  return -1;
+}
+function allocateBestFit(size){
+  let bestIdx=-1,best=Infinity;
+  for(let i=0;i<freeAreas.length;i++){
+    if(freeAreas[i].count>=size&&freeAreas[i].count<best){best=freeAreas[i].count;bestIdx=i}
+  }
+  if(bestIdx===-1)return -1;
+  const a=freeAreas[bestIdx];const alloc=a.start;
+  log(`  🔍 Best-Fit扫描: [${a.start}:${a.count}] 最佳匹配 (剩余${a.count-size}块)`,'sys');
+  a.start+=size; a.count-=size;
+  if(a.count===0)freeAreas.splice(bestIdx,1);
+  return alloc;
+}
+function bitmapFindFree(size){
+  log(`  📊 分配策略: ${allocStrategy==='best-fit'?'Best-Fit (最佳适应)':'First-Fit (首次适应)'}`,'info');
+  return allocStrategy==='best-fit'?allocateBestFit(size):allocateFirstFit(size);
 }
 function updateStatusBar(){
   const used=diskBlocks.filter(b=>b!==null).length;
@@ -939,13 +1244,12 @@ function updateStatusBar(){
   $('statBarFill').style.background=free/DISK_SIZE>.7?'var(--green)':free/DISK_SIZE>.3?'var(--yellow)':'var(--red)';
   const used2=bufPages.filter(p=>p!==null).length;
   $('statBuf').textContent=used2+'/'+BUF_SIZE;
-  $('statMode').textContent=cmdModeOn?'⚙️ 进程模式':'';
+  $('statMode').textContent=cmdModeOn?'⚙️ 进程模式':'📐 连续分配';
 }
 
 // ============ NAV TREE ============
 function renderNavTree(){
-  const el=$('navTree'),users={};
-  files.forEach(f=>{const u=f.owner||'unknown';if(!users[u])users[u]=[];users[u].push(f)});
+  const el=$('navTree');
   let html=`<div class="tree-node${!currentPath?' selected':''}" onclick="navigateTo('')">
     <div class="tree-row" style="--depth:0"><span class="tree-arrow expandable expanded">▶</span><span class="tree-icon">🖥️</span><span class="tree-name">此电脑</span></div>
   </div>`;
@@ -956,19 +1260,27 @@ function renderNavTree(){
   ['MFD','UFD','FreeTable'].forEach(sys=>{
     html+=`<div class="tree-node" data-folder="${sys}"><div class="tree-row" style="--depth:2"><span class="tree-arrow"></span><span class="tree-icon">⚙️</span><span class="tree-name" style="color:var(--text2)">${sys}</span></div></div>`;
   });
-  for(const u in users){
-    const sel=currentPath===u;
-    html+=`<div class="tree-node${sel?' selected':''}" data-folder="${u}"><div class="tree-row" style="--depth:2" onclick="navigateTo('${u}')">
-      <span class="tree-arrow expandable expanded" onclick="event.stopPropagation();toggleTreeNode(this)">▶</span>
-      <span class="tree-icon">📁</span><span class="tree-name">${u}</span></div>
-      <div class="tree-children" id="tc${u}">`;
-    users[u].forEach(f=>{
-      const ext=f.name.split('.').pop()||'';
-      const icon=ext==='exe'?'⚡':ext==='txt'?'📄':ext==='pdf'?'📕':ext==='csv'?'📊':ext==='sys'?'⚙️':'📄';
-      html+=`<div class="tree-node" data-file="${f.name}" onclick="navigateToFile('${f.name}')"><div class="tree-row" style="--depth:3"><span class="tree-arrow"></span><span class="tree-icon">${icon}</span><span class="tree-name">${f.name}${fileInUse===f.name?' 🟡':''}</span></div></div>`;
+  // Recursive folder rendering
+  function renderSubFolders(parentName,depth){
+    const subs=folders.filter(fp=>fp!==parentName&&fp.startsWith(parentName+'/')&&fp.split('/').length===parentName.split('/').length+1).sort();
+    subs.forEach(sub=>{
+      const hasSubs=folders.some(fp=>fp.startsWith(sub+'/')&&fp.split('/').length===sub.split('/').length+1);
+      html+=`<div class="tree-node${currentPath===sub?' selected':''}" data-folder="${sub}" ondragover="event.preventDefault()" ondrop="handleDropNavFolder(event,'${sub}')"><div class="tree-row" style="--depth:${depth}" onclick="navigateTo('${sub}')"><span class="tree-arrow${hasSubs?' expandable':''}" onclick="event.stopPropagation();toggleTreeNode(this)">▶</span><span class="tree-icon">📂</span><span class="tree-name">${sub.split('/').pop()}</span></div>`;
+      if(hasSubs){html+=`<div class="tree-children" id="tc${sub.replace(/[\/\s]/g,'_')}">`;renderSubFolders(sub,depth+1);html+=`</div>`}
+      html+=`</div>`;
     });
-    html+=`</div></div>`;
   }
+  // Top-level roots
+  const roots=folders.filter(p=>p.indexOf('/')===-1).sort();
+  roots.forEach(root=>{
+    const sel=currentPath===root;
+    const hasSubs=folders.some(fp=>fp.startsWith(root+'/')&&fp.split('/').length===root.split('/').length+1);
+    html+=`<div class="tree-node${sel?' selected':''}" data-folder="${root}" ondragover="event.preventDefault()" ondrop="handleDropNavFolder(event,'${root}')"><div class="tree-row" style="--depth:2" onclick="navigateTo('${root}')">
+      <span class="tree-arrow${hasSubs?' expandable':''}" onclick="event.stopPropagation();toggleTreeNode(this)">▶</span>
+      <span class="tree-icon">📁</span><span class="tree-name">${root}</span></div>`;
+    if(hasSubs){html+=`<div class="tree-children" id="tc${root.replace(/[\/\s]/g,'_')}">`;renderSubFolders(root,3);html+=`</div>`}
+    html+=`</div>`;
+  });
   html+=`</div></div>`;
   el.innerHTML=html;
 }
@@ -1003,25 +1315,37 @@ function sortFiles(key){
 function renderFileList(){
   const el=$('fileList'),empty=$('emptyMsg');
   const filtered=getFilteredFiles();
-  if(filtered.length===0){el.innerHTML=`<div class="empty-msg"><div class="empty-icon">📂</div><div>${searchQuery?'未找到匹配文件':'此文件夹为空'}</div>${!searchQuery?'<button class="btn btn-s" onclick="cmdNewFile()">📄 新建文件</button>':''}</div>`;return}
+  // Find subfolders that are direct children of the current path
+  const prefix=currentPath?currentPath+'/':'';
+  const allPaths=[...new Set(folders)];
+  const subFolders=allPaths.filter(fp=>{
+    if(!fp.startsWith(prefix)||fp===currentPath)return false;
+    const rest=fp.slice(prefix.length);
+    return rest.indexOf('/')===-1;
+  }).sort();
+  const hasItems=filtered.length>0||subFolders.length>0;
+  if(!hasItems){el.innerHTML=`<div class="empty-msg"><div class="empty-icon">📂</div><div>${searchQuery?'未找到匹配文件':'此文件夹为空'}</div>${!searchQuery?'<div style="font-size:10px;color:var(--text2);margin-bottom:6px">右键空白处 → 选择文件类型新建</div><button class="btn btn-s" onclick="cmdNewFile()">📄 新建文件</button>':''}</div>`;return}
   if(viewMode==='icon'){
     let html='<div style="display:flex;gap:12px;flex-wrap:wrap;padding:12px">';
+    // Subfolders first
+    subFolders.forEach(sf=>{
+      const folderName=sf.split('/').pop();
+      html+=`<div class="file-row" style="flex-direction:column;width:90px;padding:10px;text-align:center;border-radius:8px" onclick="navigateTo('${sf}')" ondblclick="navigateTo('${sf}')" oncontextmenu="showCtxMenu(event,'file','${sf}')"><div style="font-size:32px">📁</div><div style="font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">${folderName}</div></div>`;
+    });
     filtered.forEach(f=>{
-      const ext=f.name.split('.').pop()||'';const icon=ext==='exe'?'⚡':ext==='txt'?'📄':ext==='pdf'?'📕':ext==='csv'?'📊':ext==='sys'?'⚙️':'📄';
+      const ext=f.name.split('.').pop()||'';const icon=fileIcon(ext,f.name);
       html+=`<div class="file-row" style="flex-direction:column;width:90px;padding:10px;text-align:center;border-radius:8px" onclick="selectFileInList('${f.name}')" ondblclick="cmdViewFile()" oncontextmenu="showCtxMenu(event,'file','${f.name}')" draggable="true" ondragstart="dragStart(event,'${f.name}')"><div style="font-size:32px">${icon}</div><div style="font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%">${f.name}${fileInUse===f.name?' 🟡':''}</div></div>`;
     });
     html+='</div>';el.innerHTML=html;
-  } else if(viewMode==='list'){
-    let html='';
-    filtered.forEach(f=>{
-      const ext=f.name.split('.').pop()||'';const icon=ext==='exe'?'⚡':ext==='txt'?'📄':ext==='pdf'?'📕':ext==='csv'?'📊':ext==='sys'?'⚙️':'📄';
-      html+=`<div class="file-row" data-file="${f.name}" onclick="selectFileInList('${f.name}')" ondblclick="cmdViewFile()" oncontextmenu="showCtxMenu(event,'file','${f.name}')" draggable="true" ondragstart="dragStart(event,'${f.name}')"><span class="f-icon">${icon}</span><span class="f-name"><span class="f-name-text">${f.name}</span>${fileInUse===f.name?'<span class="f-inuse">使用中</span>':''}</span><span class="f-date">${f.time}</span><span class="f-size">${f.size}块</span><span class="f-type">${ext.toUpperCase()}</span><span class="f-perm">${f.perm}</span></div>`;
-    });
-    el.innerHTML=html;
   } else {
     let html='';
+    // Subfolders first
+    subFolders.forEach(sf=>{
+      const folderName=sf.split('/').pop();
+      html+=`<div class="file-row" data-folder="${sf}" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDropFolder(event,'${sf}')" onclick="navigateTo('${sf}')" ondblclick="navigateTo('${sf}')"><span class="f-icon">📁</span><span class="f-name"><span class="f-name-text">${folderName}</span></span><span class="f-date" style="color:var(--text2)">文件夹</span><span class="f-size">-</span><span class="f-type">文件夹</span><span class="f-perm">-</span></div>`;
+    });
     filtered.forEach(f=>{
-      const ext=f.name.split('.').pop()||'';const icon=ext==='exe'?'⚡':ext==='txt'?'📄':ext==='pdf'?'📕':ext==='csv'?'📊':ext==='sys'?'⚙️':'📄';
+      const ext=f.name.split('.').pop()||'';const icon=fileIcon(ext,f.name);
       html+=`<div class="file-row" data-file="${f.name}" onclick="selectFileInList('${f.name}')" ondblclick="cmdViewFile()" oncontextmenu="showCtxMenu(event,'file','${f.name}')" draggable="true" ondragstart="dragStart(event,'${f.name}')"><span class="f-icon">${icon}</span><span class="f-name"><span class="f-name-text">${f.name}</span>${fileInUse===f.name?'<span class="f-inuse">使用中</span>':''}</span><span class="f-date">${f.time}</span><span class="f-size">${f.size}块</span><span class="f-type">${ext.toUpperCase()}</span><span class="f-perm">${f.perm}</span></div>`;
     });
     el.innerHTML=html;
@@ -1083,9 +1407,16 @@ function renderFAT(){
 function renderFreeAreas(){
   const el=$('freeAreasContent');if(!el)return;
   let html='',totalFree=0;
-  freeAreas.forEach(a=>{totalFree+=a.count;html+=`<div class="free-list-item" onclick="highlightDiskBlocks(${a.start},${a.count})">起始块 <b class="color-accent">${a.start}</b> → 连续 <b class="color-green">${a.count}</b> 块空闲</div>`});
+  // Chain visualization
+  html+=`<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:8px;padding:8px;background:var(--bg);border-radius:6px;font-size:11px;font-family:var(--font-mono)">`;
+  freeAreas.forEach((a,i)=>{totalFree+=a.count;html+=`<span style="background:rgba(22,198,12,.12);border:1px solid rgba(22,198,12,.25);border-radius:4px;padding:3px 8px;color:var(--green);font-weight:600">[${a.start}:${a.count}]</span><span style="color:var(--text2)">→</span>`});
+  if(!freeAreas.length)html+=`<span style="color:var(--red)">(无空闲盘区)</span>`;
+  else html+=`<span style="color:var(--text2);font-weight:600">null</span>`;
+  html+=`</div>`;
+  html+=`<div class="mb-8 text-sm">总空闲块: <b class="color-green">${totalFree}</b> / ${DISK_SIZE} (<b>${(totalFree/DISK_SIZE*100).toFixed(1)}%</b>) | 空闲链节点数: ${freeAreas.length} | 当前策略: <b class="color-accent">${allocStrategy==='best-fit'?'Best-Fit':'First-Fit'}</b></div>`;
+  // List view
+  freeAreas.forEach(a=>{html+=`<div class="free-list-item" onclick="highlightDiskBlocks(${a.start},${a.count})">起始块 <b class="color-accent">${a.start}</b> → 连续 <b class="color-green">${a.count}</b> 块空闲</div>`});
   if(!html) html='<div class="text-sm color-text2">无空闲盘区</div>';
-  html=`<div class="mb-8 text-sm">总空闲块: <b class="color-green">${totalFree}</b> / ${DISK_SIZE} (${(totalFree/DISK_SIZE*100).toFixed(1)}%)</div>`+html;
   el.innerHTML=html;
 }
 function highlightDiskBlocks(start,count){
@@ -1100,31 +1431,37 @@ function renderBufferView(){
   });
   el.innerHTML=html;
   if($('bufWbView')) $('bufWbView').textContent=bufWritebacks;
+  if($('bufHitView')){const total=bufHitCount+bufMissCount;$('bufHitView').textContent=bufHitCount;$('bufMissView').textContent=bufMissCount;$('bufRateView').textContent=total?((bufHitCount/total*100).toFixed(1)+'%'):'0%'}
   updateStatusBar();
 }
 
 // ============ DISK OPERATIONS ============
 function diskCreateFile(){
+  requestLock('createFile',function(){_diskCreateFile()});
+}
+function _diskCreateFile(){
   const name=$('nfName').value.trim()||('file'+(files.length+1));
-  const owner=$('nfOwner').value||'user1';
+  const owner=$('nfOwner').value.trim()||currentPath||'user1';
   const rawContent=$('nfContent').value;
-  if(files.find(f=>f.name===name)){log(`错误: 文件 ${name} 已存在`,'err');toast(`文件 ${name} 已存在`,'❌');return}
+  if(files.find(f=>f.name===name&&f.owner===owner)){toast(`${name} 已在 ${owner} 中存在`,'⚠️');log(`文件 ${name} 已在目录 ${owner} 中存在`,'err');return}
   let contentBlocks=[];
   if(rawContent) for(let i=0;i<rawContent.length;i+=BLOCK_SIZE) contentBlocks.push(rawContent.substring(i,i+BLOCK_SIZE));
   const size=Math.max(parseInt($('nfSize').value)||3, contentBlocks.length||1);
   let start=-1;
-  for(const a of freeAreas){if(a.count>=size){start=a.start;break}}
+  start=bitmapFindFree(size);
   if(start===-1){log(`错误: 无足够连续空闲空间 (需要${size}块)`,'err');toast('磁盘空间不足','❌');return}
   for(let i=start;i<start+size;i++) diskBlocks[i]={type:'data',file:name,content:i-start<contentBlocks.length?contentBlocks[i-start]:''};
   const now=new Date(),time=`${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}-${now.getDate().toString().padStart(2,'0')}`;
   files.push({name,owner,time,start,size,perm:'rw-r--r--',content:contentBlocks});
   updateFreeAreas();renderAll();closeModal('newFileModal');
-  log(`✓ 创建文件 ${name}: 首次适应分配块 ${start}~${start+size-1} (${size}块)${rawContent?' 含内容':''}`,'ok');
-  log(`  空闲盘区链扫描 → 找到起始${start}连续${size}块 → 写入FCB`,'sys');
+  log(`✓ 创建文件 ${name}: 分配块 ${start}~${start+size-1} (${size}块)`,'ok');
   toast(`已创建 ${name}`,'✅');
   currentPath=owner;navigateTo(owner);$('nfName').value='';$('nfContent').value='';
 }
 function diskDeleteFile(){
+  requestLock('deleteFile',function(){_diskDeleteFile()});
+}
+function _diskDeleteFile(){
   const name=selectedFile;if(!name){toast('请先选择文件','⚠️');return}
   if(fileInUse===name){log(`⛔ 删除被阻止: 文件 ${name} 正在使用中`,'err');toast(`文件 ${name} 正在使用中，无法删除`,'🔒');return}
   const idx=files.findIndex(f=>f.name===name);if(idx===-1)return;
@@ -1149,6 +1486,9 @@ function diskViewFile(){
   bufLoadFileAnimated(f);
 }
 function diskEditFile(){
+  requestLock('editFile',function(){_diskEditFile()});
+}
+function _diskEditFile(){
   const name=selectedFile;if(!name){toast('请先选择文件','⚠️');return}
   const f=files.find(x=>x.name===name);if(!f)return;
   fileInUse=name;renderAll();bufPages.forEach(p=>{if(p&&p.owner===name)p.dirty=true});
@@ -1175,7 +1515,8 @@ function closeFileView(){
 // ============ BUFFER SYSTEM ============
 function bufLoadBlock(blockIdx,owner,content){
   let idx=bufPages.findIndex(p=>p&&p.blockIdx===blockIdx&&p.owner===owner);
-  if(idx!==-1){bufAccessCounter++;bufPages[idx].accessTime=bufAccessCounter;return idx}
+  if(idx!==-1){bufAccessCounter++;bufPages[idx].accessTime=bufAccessCounter;bufHitCount++;return idx}
+  bufMissCount++;
   idx=bufPages.findIndex(p=>p===null);
   if(idx===-1){
     let lruTime=Infinity,lruIdx=0;
@@ -1197,7 +1538,14 @@ async function bufLoadFileAnimated(file){
     const blockIdx=file.start+i;
     const cells=document.querySelectorAll('#diskGrid .disk-cell');
     if(cells[blockIdx]){cells[blockIdx].classList.add('reading');setTimeout(()=>cells[blockIdx].classList.remove('reading'),400)}
+    // Check if already in buffer (HIT or MISS)
+    const alreadyIn=bufPages.find(p=>p&&p.blockIdx===blockIdx&&p.owner===file.name);
     bufLoadBlock(blockIdx,file.name,file.content&&file.content[i]||'');
+    if(alreadyIn){
+      log(`  ✅ HIT 块${blockIdx}(${file.name}) — 已在缓冲页中, 刷新访问时间`,'ok');
+    } else {
+      log(`  ❌ MISS 块${blockIdx}(${file.name}) — 加载到缓冲页`,'info');
+    }
     renderBufferView();await new Promise(r=>setTimeout(r,200));
   }
   log(`✓ ${file.name} 全部加载到缓冲区`,'ok');
@@ -1217,8 +1565,8 @@ function showCtxMenu(e,type,targetName,targetIdx){
     items+=`<div class="ctx-item" onclick="showFCB(ctxTarget.targetName);hideCtx()">ℹ️ 属性 / FCB详情</div>`;
     items+=`<div class="ctx-item" onclick="showFATForFile(ctxTarget.targetName);hideCtx()">🔗 查看FAT链</div>`;
     items+=`<div class="ctx-item" onclick="bufLoadFileAnimated(files.find(f=>f.name===ctxTarget.targetName));hideCtx()">📑 加载到缓冲区</div>`;
-    const f=files.find(ff=>ff.name===targetName);
-    if(f&&(f.name.endsWith('.pdf')||f.name.endsWith('.txt'))) items+=`<div class="ctx-item" onclick="sendToPrinter(ctxTarget.targetName);hideCtx()">🖨️ 发送到打印机</div>`;
+    const ctxTargetFile=files.find(x=>x.name===targetName);
+    if(ctxTargetFile&&(ctxTargetFile.name.endsWith('.pdf')||ctxTargetFile.name.endsWith('.txt'))) items+=`<div class="ctx-item" onclick="sendToPrinter(ctxTarget.targetName);hideCtx()">🖨️ 发送到打印机</div>`;
     items+=`<div class="ctx-sep"></div>`;
     items+=`<div class="ctx-item" onclick="cmdRename();hideCtx()">✏️ 重命名<span class="ctx-shortcut">F2</span></div>`;
     items+=`<div class="ctx-item" onclick="cmdDeleteFile();hideCtx()">🗑️ 删除<span class="ctx-shortcut">Del</span></div>`;
@@ -1228,7 +1576,15 @@ function showCtxMenu(e,type,targetName,targetIdx){
     items+=`<div class="ctx-item">${b?b.type+' - '+b.file:'空闲'}</div>`;
     if(b&&b.type==='data') items+=`<div class="ctx-item" onclick="navigateToFile('${b.file}');hideCtx()">📄 定位文件 ${b.file}</div>`;
   } else if(type==='blank'){
-    items+=`<div class="ctx-item" onclick="cmdNewFile();hideCtx()">📄 新建文件</div>`;
+    items+=`<div style="font-size:10px;color:var(--text2);padding:4px 12px;font-weight:600">新建</div>`;
+    items+=`<div class="ctx-item" onclick="cmdNewFolder();hideCtx()"><span>📁</span> 新建文件夹</div>`;
+    items+=`<div class="ctx-item" onclick="cmdNewFileTpl('txt','📄');hideCtx()"><span>📄</span> 文本文档 (.txt)</div>`;
+    items+=`<div class="ctx-item" onclick="cmdNewFileTpl('pdf','📕');hideCtx()"><span>📕</span> PDF 文档 (.pdf)</div>`;
+    items+=`<div class="ctx-item" onclick="cmdNewFileTpl('pptx','📊');hideCtx()"><span>📊</span> PowerPoint (.pptx)</div>`;
+    items+=`<div class="ctx-item" onclick="cmdNewFileTpl('docx','📝');hideCtx()"><span>📝</span> Word 文档 (.docx)</div>`;
+    items+=`<div class="ctx-item" onclick="cmdNewFileTpl('xlsx','📗');hideCtx()"><span>📗</span> Excel 表格 (.xlsx)</div>`;
+    items+=`<div class="ctx-item" onclick="cmdNewFileTpl('exe','⚙️');hideCtx()"><span>⚡</span> 可执行程序 (.exe)</div>`;
+    items+=`<div class="ctx-sep"></div>`;
     items+=`<div class="ctx-item" onclick="cmdRefresh();hideCtx()">🔄 刷新</div>`;
     items+=`<div class="ctx-sep"></div>`;
     items+=`<div class="ctx-item" onclick="showBitmapModal();hideCtx()">🗺️ 位示图</div>`;
@@ -1243,13 +1599,70 @@ document.getElementById('fileList').addEventListener('contextmenu',function(e){i
 document.querySelector('.nav-pane').addEventListener('contextmenu',function(e){if(!e.target.closest('.tree-node')){showCtxMenu(e,'blank');e.preventDefault()}});
 
 // ============ MODAL SHORTCUTS ============
-function cmdNewFile(){openModal('newFileModal');$('nfName').focus()}
-function cmdNewFolder(){toast('文件夹功能: 请输入用户名作为文件夹','📁')}
-function cmdViewFile(){if(selectedFile)diskViewFile();else toast('请先选择文件','⚠️')}
+function cmdNewFile(){
+  openModal('newFileModal');
+  $('nfName').focus();
+  // Pre-fill owner with current folder path
+  if(currentPath&&currentPath!==''){
+    $('nfOwner').value=currentPath;
+  }
+}
+function cmdNewFileTpl(ext,icon){
+  openModal('newFileModal');
+  const name=$('nfName');name.value='新建文件.'+ext;name.focus();name.select();
+  $('nfType').value='.'+ext;
+  if(currentPath&&currentPath!=='')$('nfOwner').value=currentPath;
+}
+function nfTypeChanged(){
+  const name=$('nfName'),type=$('nfType').value;
+  const exeRow=$('exeTemplateRow');
+  if(type==='.exe'){exeRow.style.display='block'}else{exeRow.style.display='none'}
+  if(!type||!name.value)return;
+  const base=name.value.replace(/\.[^.]+$/,'');
+  if(name.value.includes('.')&&name.value!==base+type) name.value=base+type;
+  else if(!name.value.includes('.')) name.value+=type;
+}
+function nfExeTemplateChanged(){
+  const tpl=$('nfExeTemplate').value;
+  if(!tpl)return;
+  $('nfName').value=tpl;
+  $('nfSize').value=1;
+  $('nfContent').value='AUTO_EXECUTABLE:'+tpl;
+}
+function cmdNewFolder(){
+  const name=prompt('请输入文件夹名称:','新建文件夹');
+  if(!name||!name.trim())return;
+  const folder=name.trim();
+  // Path: parent/child — support nesting
+  const parentPath=currentPath&&currentPath!==''?currentPath:'';
+  const fullPath=parentPath?parentPath+'/'+folder:folder;
+  if(folders.includes(fullPath)){toast(`文件夹 ${fullPath} 已存在`,'⚠️');return}
+  folders.push(fullPath);
+  // Also ensure parent path exists (skip if parent is a file-based user)
+  if(parentPath&&!folders.includes(parentPath))folders.push(parentPath);
+  currentPath=fullPath;
+  navHistory.push(fullPath);navHistoryIdx=navHistory.length-1;
+  updateAddressBar();renderNavTree();renderFileList();
+  log(`📁 新建文件夹: ${fullPath}`,'ok');
+  toast(`已创建文件夹 ${fullPath}`,'📁');
+}
+function cmdViewFile(){
+  if(!selectedFile){toast('请先选择文件','⚠️');return}
+  const f=files.find(x=>x.name===selectedFile);
+  if(!f)return;
+  // .exe files open their application interface
+  if(selectedFile.endsWith('.exe')){
+    if(selectedFile==='printer.exe'){showPrintSchedModal();return}
+    if(selectedFile==='paint.exe'){openPaintApp();return}
+    if(selectedFile==='notepad.exe'){openNotepadApp();return}
+    if(selectedFile==='calc.exe'){openCalcApp();return}
+  }
+  diskViewFile();
+}
 function cmdEditFile(){if(selectedFile)diskEditFile();else toast('请先选择文件','⚠️')}
 function cmdDeleteFile(){if(selectedFile)diskDeleteFile();else toast('请先选择文件','⚠️')}
 function cmdProperties(){if(selectedFile)showFCB(selectedFile);else toast('请先选择文件','⚠️')}
-function cmdRename(){if(!selectedFile){toast('请先选择文件','⚠️');return}const row=document.querySelector(`.file-row[data-file="${selectedFile}"]`);if(!row)return;const nameEl=row.querySelector('.f-name-text');if(!nameEl)return;const old=nameEl.textContent;const inp=document.createElement('input');inp.className='f-name-input';inp.value=old;nameEl.replaceWith(inp);inp.focus();inp.select();inp.onblur=inp.onkeydown=function(e){if(e&&e.key==='Escape'){inp.replaceWith(nameEl);return}if(e&&e.key!=='Enter')return;const nn=inp.value.trim();if(nn&&nn!==old&&!files.find(f=>f.name===nn)){const f=files.find(ff=>ff.name===selectedFile);if(f){f.name=nn;for(let i=f.start;i<f.start+f.size;i++){if(diskBlocks[i])diskBlocks[i].file=nn}selectedFile=nn;renderAll();log(`重命名 ${old} → ${nn}`,'ok');toast(`已重命名为 ${nn}`,'✏️')}}else{inp.replaceWith(nameEl)}}}
+function cmdRename(){if(!selectedFile){toast('请先选择文件','⚠️');return}const row=document.querySelector(`.file-row[data-file="${selectedFile}"]`);if(!row)return;const nameEl=row.querySelector('.f-name-text');if(!nameEl)return;const old=nameEl.textContent;const inp=document.createElement('input');inp.className='f-name-input';inp.value=old;nameEl.replaceWith(inp);inp.focus();inp.select();inp.onblur=inp.onkeydown=function(e){if(e&&e.key==='Escape'){inp.replaceWith(nameEl);return}if(e&&e.key!=='Enter')return;const nn=inp.value.trim();if(nn&&nn!==old){const f=files.find(ff=>ff.name===selectedFile);if(f&&!files.find(ff=>ff.name===nn&&ff.owner===f.owner)){f.name=nn;for(let i=f.start;i<f.start+f.size;i++){if(diskBlocks[i])diskBlocks[i].file=nn}selectedFile=nn;renderAll();log(`重命名 ${old} → ${nn}`,'ok');toast(`已重命名为 ${nn}`,'✏️')}else{toast('该目录下已存在同名文件','⚠️');inp.replaceWith(nameEl)}}else{inp.replaceWith(nameEl)}}}
 function cmdRefresh(){renderAll();log('已刷新','sys');toast('已刷新','🔄',1200)}
 function showFCB(name){const f=files.find(x=>x.name===name);if(!f)return;const usedBytes=f.content?f.content.reduce((s,c)=>s+(c?c.length:0),0):0;let html=`<div class="fcb-row"><span class="fcb-key">📝 文件名</span><span class="fcb-val">${f.name}</span></div><div class="fcb-row"><span class="fcb-key">👤 用户</span><span class="fcb-val">${f.owner}</span></div><div class="fcb-row"><span class="fcb-key">📅 创建时间</span><span class="fcb-val">${f.time}</span></div><div class="fcb-row"><span class="fcb-key">🔒 权限</span><span class="fcb-val">${f.perm}</span></div><div class="fcb-row"><span class="fcb-key">📍 起始块</span><span class="fcb-val">${f.start}</span></div><div class="fcb-row"><span class="fcb-key">📦 占用块数</span><span class="fcb-val">${f.size}</span></div><div class="fcb-row"><span class="fcb-key">💾 数据量</span><span class="fcb-val">${usedBytes}B / ${f.size*BLOCK_SIZE}B</span></div><div class="fcb-row"><span class="fcb-key">📐 分配方式</span><span class="fcb-val">连续分配</span></div><div class="fcb-row"><span class="fcb-key">🔄 状态</span><span class="fcb-val">${fileInUse===f.name?'🟡 使用中':'🟢 空闲'}</span></div><div class="mt-8 text-sm color-text2">数据块指针:</div><div class="fcb-blocks">`;for(let i=0;i<f.size;i++)html+=`<span class="fcb-block-tag">块${f.start+i}</span>`;html+=`</div>`;$('fcbContent').innerHTML=html;openModal('fcbModal')}
 function showBitmapModal(){renderBitmap();openModal('bitmapModal')}
@@ -1379,53 +1792,192 @@ function showSyncModal(){openModal('syncModal');syncInit();renderPipe()}
 
 // ============ PRINT SCHEDULING ============
 let printJobs=[],printJobId=0;
-function addPrintJob(name,size){printJobId++;const j={id:printJobId,name:name||`print-${printJobId}.pdf`,size:size||(1+Math.floor(Math.random()*5)),priority:1+Math.floor(Math.random()*5),state:'ready',remaining:size||(1+Math.floor(Math.random()*5)),waitTime:0,turnTime:0,progress:0};j.remaining=j.size;printJobs.push(j);renderPrintTable();log(`打印作业 ${j.name} 已添加 (${j.size}页)`,'info')}
+// Show RR quantum box when RR is selected
+$('printAlgo').addEventListener('change',function(){$('printRRBox').style.display=this.value==='rr'?'block':'none'});
+function showAddJobDialog(){openModal('addJobModal');$('ajName').focus()}
+function addPrintJob(name,size,path,priority){
+  if(name===undefined){// called from dialog
+    name=$('ajName').value.trim()||'report.pdf';
+    path=$('ajPath').value.trim()||'C:\\';
+    size=parseInt($('ajSize').value)||4;
+    priority=parseInt($('ajPriority').value)||3;
+    closeModal('addJobModal');
+  }else{path=path||'C:\\';priority=priority||3}
+  printJobId++;const displayName=path+'\\'+name;
+  const j={id:printJobId,name:name,path:path,display:displayName,size:size,priority:priority,state:'ready',remaining:size,waitTime:0,turnTime:0,progress:0};
+  printJobs.push(j);renderPrintTable();
+  log(`🖨️ 打印作业 P${j.id}: ${displayName} (${size}页, 优先级${priority})`,'info');
+}
 function resetPrintSched(){printJobs=[];printJobId=0;renderPrintTable();$('printGanttContainer').innerHTML='';$('printProcNodes').innerHTML='';$('printAvgWait').textContent='-';$('printAvgTurn').textContent='-'}
-function renderPrintTable(){let tb='';printJobs.forEach(j=>{tb+=`<tr><td>P${j.id}</td><td>${j.name}</td><td>${j.size}页</td><td>${j.priority}</td><td style="color:${j.state==='running'?'var(--green)':j.state==='done'?'var(--text2)':'var(--yellow)'}">${j.state==='ready'?'等待':j.state==='running'?'打印中':'完成'}</td><td><div class="progress-wrap" style="margin:0"><div class="progress-bar"><div class="progress-fill" style="width:${j.progress}%;background:${j.state==='done'?'var(--green)':'var(--accent)'}"></div></div></div></td></tr>`});$('printTable').querySelector('tbody').innerHTML=tb;let nodes='';printJobs.forEach(j=>{nodes+=`<div class="proc-node ${j.state}">🖨️ P${j.id}<br><span style="font-size:9px">${j.name}</span></div>`});$('printProcNodes').innerHTML=nodes}
+function renderPrintTable(){
+  let tb='';printJobs.forEach(j=>{
+    tb+=`<tr><td>P${j.id}</td><td>${j.name}</td><td style="font-size:10px;color:var(--text2)">${j.path||'C:\\'}</td><td>${j.size}页</td><td>${j.priority}</td><td style="color:${j.state==='running'?'var(--green)':j.state==='done'?'var(--text2)':'var(--yellow)'}">${j.state==='ready'?'等待':j.state==='running'?'打印中':'完成'}</td><td><div class="progress-wrap" style="margin:0"><div class="progress-bar"><div class="progress-fill" style="width:${j.progress}%;background:${j.state==='done'?'var(--green)':'var(--accent)'}"></div></div></div></td></tr>`
+  });$('printTable').querySelector('tbody').innerHTML=tb;
+  let nodes='';printJobs.forEach(j=>{nodes+=`<div class="proc-node ${j.state}">🖨️ P${j.id}<br><span style="font-size:9px">${j.display||j.name}</span></div>`});$('printProcNodes').innerHTML=nodes
+}
 function runPrintSched(){
   if(printJobs.length===0){log('请先添加打印作业','warn');return}
   printJobs.forEach(j=>{j.state='ready';j.remaining=j.size;j.progress=0;j.waitTime=0;j.turnTime=0});
-  const algo=$('printAlgo').value;
+  const algo=$('printAlgo').value,q=parseInt($('printRRQuantum').value)||2;
   let gantt=[],t=0;
-  const jobs=[...printJobs],cs={};jobs.forEach((j,i)=>cs[j.name]=COLORS[i%COLORS.length]);
-  if(algo==='fcfs'){jobs.forEach(j=>{j.state='running';gantt.push({name:j.name,color:cs[j.name],time:j.size});j.waitTime=t;j.turnTime=t+j.size;t+=j.size;j.state='done';j.progress=100})}
-  else if(algo==='sjf'){let rem=[...jobs];while(rem.length){rem.sort((a,b)=>a.size-b.size);const j=rem.shift();j.state='running';gantt.push({name:j.name,color:cs[j.name],time:j.size});j.waitTime=t;j.turnTime=t+j.size;t+=j.size;j.state='done';j.progress=100}}
-  else if(algo==='rr'){const q=2;let queue=[...jobs];while(queue.length){const j=queue.shift(),exec=Math.min(q,j.remaining);j.state='running';gantt.push({name:j.name,color:cs[j.name],time:exec});t+=exec;j.remaining-=exec;j.progress=Math.round((j.size-j.remaining)/j.size*100);if(j.remaining>0){queue.push(j);j.state='ready'}else{j.state='done';j.progress=100;j.turnTime=t;j.waitTime=j.turnTime-j.size}}}
-  else if(algo==='priority'){let rem=[...jobs];while(rem.length){rem.sort((a,b)=>a.priority-b.priority);const j=rem.shift();j.state='running';gantt.push({name:j.name,color:cs[j.name],time:j.size});j.waitTime=t;j.turnTime=t+j.size;t+=j.size;j.state='done';j.progress=100}}
-  let gh='<div class="gantt">';gantt.forEach(g=>{const w=(g.time/t*100).toFixed(1);gh+=`<div class="gantt-block" style="width:${w}%;background:${g.color}" title="${g.name} ${g.time}单位">${g.time>1?g.name:''}</div>`});gh+='</div>';
+  const jobs=[...printJobs],cs={};
+  // Use display (path+name) for color key so same-named files from different dirs get different colors
+  jobs.forEach((j,i)=>cs[j.display]=COLORS[i%COLORS.length]);
+  if(algo==='fcfs'){jobs.forEach(j=>{j.state='running';gantt.push({name:j.display,color:cs[j.display],time:j.size});j.waitTime=t;j.turnTime=t+j.size;t+=j.size;j.state='done';j.progress=100})}
+  else if(algo==='sjf'){let rem=[...jobs];while(rem.length){rem.sort((a,b)=>a.size-b.size);const j=rem.shift();j.state='running';gantt.push({name:j.display,color:cs[j.display],time:j.size});j.waitTime=t;j.turnTime=t+j.size;t+=j.size;j.state='done';j.progress=100}}
+  else if(algo==='rr'){let queue=[...jobs];while(queue.length){const j=queue.shift(),exec=Math.min(q,j.remaining);j.state='running';gantt.push({name:j.display,color:cs[j.display],time:exec});t+=exec;j.remaining-=exec;j.progress=Math.round((j.size-j.remaining)/j.size*100);if(j.remaining>0){queue.push(j);j.state='ready'}else{j.state='done';j.progress=100;j.turnTime=t;j.waitTime=j.turnTime-j.size}}}
+  else if(algo==='priority'){let rem=[...jobs];while(rem.length){rem.sort((a,b)=>a.priority-b.priority);const j=rem.shift();j.state='running';gantt.push({name:j.display,color:cs[j.display],time:j.size});j.waitTime=t;j.turnTime=t+j.size;t+=j.size;j.state='done';j.progress=100}}
+  let gh='<div class="gantt">';gantt.forEach(g=>{const w=(g.time/t*100).toFixed(1);gh+=`<div class="gantt-block" style="width:${w}%;background:${g.color}" title="${g.name} ${g.time}页">${g.time>1?g.name.split('\\').pop():''}</div>`});gh+='</div>';
   $('printGanttContainer').innerHTML=gh;
   const n=printJobs.length;const aw=(printJobs.reduce((s,j)=>s+j.waitTime,0)/n).toFixed(2);const at=(printJobs.reduce((s,j)=>s+j.turnTime,0)/n).toFixed(2);
   $('printAvgWait').textContent=aw;$('printAvgTurn').textContent=at;renderPrintTable();
   log(`打印调度完成 ${algo.toUpperCase()} 平均等待:${aw} 平均周转:${at}`,'ok');
-  printJobs.filter(j=>j.state==='done').forEach(j=>toast(`✅ ${j.name} 打印完成`,'🖨️'))
+  printJobs.filter(j=>j.state==='done').forEach(j=>toast(`✅ ${j.display} 打印完成`,'🖨️'))
 }
 function quickPrintDemo(){
   resetPrintSched();
-  addPrintJob('1.pdf',3);addPrintJob('2.pdf',5);
-  log('已添加快速演示作业: 1.pdf(3页) + 2.pdf(5页)','info');
+  addPrintJob('1.pdf',3,'C:\\Users\\Alice','2');addPrintJob('2.pdf',5,'C:\\Users\\Bob','4');
+  log('已添加快速演示作业: Alice的1.pdf(3页,优先级2) + Bob的2.pdf(5页,优先级4)','info');
   setTimeout(()=>runPrintSched(),600);
 }
-function sendToPrinter(name){addPrintJob(name,files.find(f=>f.name===name)?.size||3);openModal('printSchedModal');toast(`${name} 已加入打印队列`,'🖨️')}
+function sendToPrinter(name){const f=files.find(x=>x.name===name);addPrintJob(name,f?.size||3,f?.owner||'C:\\','3');openModal('printSchedModal');toast(`${name} 已加入打印队列`,'🖨️')}
 function showPrintSchedModal(){openModal('printSchedModal')}
+
+// ============ PAINT.EXE APP ============
+let paintColor='#3b78ff',paintMode='brush',paintDrawing=false,paintCtx=null;
+function openPaintApp(){
+  openModal('paintModal');
+  const c=$('paintCanvas'),ctx=c.getContext('2d');
+  paintCtx=ctx;
+  // Clear with white background
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,c.width,c.height);
+}
+function paintLine(){paintMode='brush'}
+function paintRect(){paintMode='rect'}
+function paintClear(){const c=$('paintCanvas');paintCtx.fillStyle='#fff';paintCtx.fillRect(0,0,c.width,c.height)}
+let paintStartX=0,paintStartY=0;
+function paintMouseDown(e){paintDrawing=true;const r=$('paintCanvas').getBoundingClientRect();paintStartX=e.clientX-r.left;paintStartY=e.clientY-r.top}
+function paintMouseMove(e){if(!paintDrawing)return;const r=$('paintCanvas').getBoundingClientRect();const x=e.clientX-r.left,y=e.clientY-r.top;
+  if(paintMode==='brush'){paintCtx.strokeStyle=paintColor;paintCtx.lineWidth=3;paintCtx.lineCap='round';paintCtx.beginPath();paintCtx.moveTo(paintStartX,paintStartY);paintCtx.lineTo(x,y);paintCtx.stroke();paintStartX=x;paintStartY=y}
+}
+function paintMouseUp(e){if(!paintDrawing)return;paintDrawing=false;
+  if(paintMode==='rect'){const r=$('paintCanvas').getBoundingClientRect();const x=e.clientX-r.left,y=e.clientY-r.top;paintCtx.strokeStyle=paintColor;paintCtx.lineWidth=3;paintCtx.strokeRect(paintStartX,paintStartY,x-paintStartX,y-paintStartY)}
+}
+function paintSave(){
+  const c=$('paintCanvas'),data=c.toDataURL('image/png');
+  const content='PAINT_IMAGE:'+data.substring(0,200);
+  // Create or update paint_output.png
+  let f=files.find(x=>x.name==='paint_output.png');
+  if(f){const idx=files.indexOf(f);for(let i=f.start;i<f.start+f.size;i++)diskBlocks[i]=null;files.splice(idx,1);updateFreeAreas()}
+  $('nfName').value='paint_output.png';$('nfOwner').value=currentPath;const oldCmd=cmdModeOn;cmdModeOn=false;
+  $('nfSize').value=Math.ceil(content.length/BLOCK_SIZE);$('nfContent').value=content;diskCreateFile();cmdModeOn=oldCmd;
+  log('🎨 画图保存: paint_output.png → 位示图分配块','ok');toast('已保存 paint_output.png','💾');
+  // Auto-show bitmap to demonstrate allocation
+  setTimeout(()=>{showBitmapModal()},500);
+}
+function paintShowBehind(){showBitmapModal();log('🔍 查看位示图 — 展示画图文件占用磁盘块情况','sys')}
+
+// ============ NOTEPAD.EXE APP ============
+function openNotepadApp(){
+  openModal('notepadModal');
+  $('notepadText').value='';$('notepadCharCount').textContent='0';$('notepadBlockEst').textContent='0';
+  $('notepadText').focus();
+  $('notepadText').oninput=function(){const len=this.value.length;$('notepadCharCount').textContent=len;$('notepadBlockEst').textContent=Math.ceil(len/BLOCK_SIZE)||1}
+}
+function notepadSave(){
+  const content=$('notepadText').value;
+  if(!content){toast('请先输入文本','⚠️');return}
+  const name='notepad_output.txt';
+  $('nfName').value=name;$('nfOwner').value=currentPath;
+  const oldCmd=cmdModeOn;cmdModeOn=false;
+  $('nfSize').value=Math.ceil(content.length/BLOCK_SIZE);$('nfContent').value=content;diskCreateFile();cmdModeOn=oldCmd;
+  log('📝 记事本保存: '+name+' ('+Math.ceil(content.length/BLOCK_SIZE)+'块) → 触发缓冲页加载','ok');
+  toast('已保存 '+name,'💾');
+  // Auto-show buffer to demonstrate page loading
+  setTimeout(()=>{
+    const f=files.find(x=>x.name===name);
+    if(f)bufLoadFileAnimated(f);
+    showBufferModal();
+  },400);
+}
+function notepadShowBehind(){showBufferModal();log('🔍 查看缓冲页 — 展示 LRU 置换与页面分配','sys')}
+
+// ============ CALC.EXE APP ============
+let calcExpr='';
+function openCalcApp(){openModal('calcModal');calcExpr='';$('calcDisplay').textContent='0'}
+function calcInput(ch){
+  const ops='+-*/';
+  if(calcExpr==='0'&&ch!=='.'&&!ops.includes(ch))calcExpr=ch;
+  else calcExpr+=ch.replace('×','*').replace('÷','/').replace('−','-');
+  $('calcDisplay').textContent=calcExpr||'0';
+}
+function calcCompute(){
+  try{const result=eval(calcExpr);$('calcDisplay').textContent=result;calcExpr=String(result);
+    // Simulate shared memory: P1 writes result to shared memory
+    shmData={value:result,writer:'calc.exe'};$('shmValue').textContent=result;
+    log('🧮 计算器: '+calcExpr+' = '+result+' → 结果写入共享内存','info');
+    toast('结果 '+result+' 已写入共享内存','🧠');
+  }catch(e){$('calcDisplay').textContent='错误';calcExpr='';toast('表达式错误','⚠️')}
+}
+function calcClear(){calcExpr='';$('calcDisplay').textContent='0'}
+function calcShowBehind(){showSyncModal();log('🔍 查看共享内存通信 — 计算器结果通过共享内存传递给接收进程','sys')}
 
 // ============ DRAG & DROP ============
 let dragFile=null;
 function dragStart(e,name){dragFile=name;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',name);e.target.classList.add('drag-source')}
-function handleDragOver(e){e.preventDefault();const row=e.target.closest('.file-row');if(row&&row.dataset.file&&row.dataset.file.endsWith('.exe')){row.classList.add('drag-over')}}
+function handleDragOver(e){
+  e.preventDefault();
+  const row=e.target.closest('.file-row');
+  if(row){
+    if(row.dataset.file&&row.dataset.file.endsWith('.exe')){row.classList.add('drag-over')}
+    if(row.dataset.folder){row.classList.add('drag-over')}
+  }
+}
 function handleDragLeave(e){const row=e.target.closest('.file-row');if(row)row.classList.remove('drag-over')}
+// Drop a file onto a folder in the file list
+function handleDropFolder(e,folderPath){
+  e.preventDefault();e.stopPropagation();
+  const row=e.target.closest('.file-row');if(row)row.classList.remove('drag-over');
+  if(!dragFile)return;
+  const f=files.find(x=>x.name===dragFile);
+  if(f){f.owner=folderPath;log(`📂 拖放: ${dragFile} → 移动到 ${folderPath}`,'info');toast(`${dragFile} 已移至 ${folderPath}`,'📂');renderAll()}
+  dragFile=null;
+}
+// Drop onto .exe or file row
 function handleDrop(e){
   e.preventDefault();const row=e.target.closest('.file-row');if(row)row.classList.remove('drag-over');
   const targetEl=e.target.closest('.file-row');if(!targetEl)return;
   const targetFile=targetEl.dataset.file;if(!targetFile)return;
   const f=files.find(x=>x.name===targetFile);
+  // Drop onto folder
+  if(targetEl.dataset.folder){
+    if(dragFile){const df=files.find(x=>x.name===dragFile);if(df){df.owner=targetEl.dataset.folder;log(`📂 拖放: ${dragFile} → 移动到 ${targetEl.dataset.folder}`,'info');toast(`${dragFile} 已移至 ${targetEl.dataset.folder}`,'📂');renderAll()}}
+    dragFile=null;return;
+  }
+  // Drop onto printer.exe
   if(f&&f.name==='printer.exe'&&dragFile){
     const df=files.find(x=>x.name===dragFile);
     if(df&&(df.name.endsWith('.pdf')||df.name.endsWith('.txt'))){
-      addPrintJob(dragFile,df.size||3);openModal('printSchedModal');
+      addPrintJob(dragFile,df.size||3,df.owner||'C:\\','3');openModal('printSchedModal');
       log(`🖨️ 拖放: ${dragFile} → printer.exe (已加入打印队列)`,'info');
       toast(`${dragFile} 已发送到打印机`,'🖨️');
     }
   }
+  // Drop onto paint.exe (PNG files)
+  if(f&&f.name==='paint.exe'&&dragFile){
+    const df=files.find(x=>x.name===dragFile);
+    if(df&&df.name.endsWith('.png')){
+      openPaintApp();log(`🎨 拖放: ${dragFile} → paint.exe (加载PNG到画布)`,'info');toast(`已打开 ${dragFile}`,'🎨');
+    }
+  }
+  dragFile=null;
+}
+// Drop a file onto a folder in the nav tree
+function handleDropNavFolder(e,folderPath){
+  e.preventDefault();e.stopPropagation();
+  if(!dragFile)return;
+  const f=files.find(x=>x.name===dragFile);
+  if(f){f.owner=folderPath;log(`📂 拖放: ${dragFile} → 移动到 ${folderPath}`,'info');toast(`${dragFile} 已移至 ${folderPath}`,'📂');renderAll()}
   dragFile=null;
 }
 
@@ -1445,17 +1997,203 @@ async function cmdDispatchAll(){for(const c of cmdQueue.filter(x=>x.status==='re
 async function cmdDispatchOne(id){const c=cmdQueue.find(x=>x.id===id);if(!c||c.status!=='ready')return;c.status='running';log(`▶ P${c.id} 执行: ${c.label} [Running]`,'info');await new Promise(r=>setTimeout(r,800));try{switch(c.action){case'create':diskCreateFile();break;case'delete':diskDeleteFile();break;case'view':diskViewFile();break;case'edit':diskEditFile();break}}catch(e){log(`P${c.id} 失败: ${e.message}`,'err')}c.status='done';log(`✓ P${c.id} 完成 [Done]`,'ok')}
 
 // ============ CONFLICT DEMO ============
+function showHelpManual(){
+  openModal('helpModal');
+  const idx=$('helpIndex'),doc=$('helpDocText');
+  const sections=[
+    {id:'overview',title:'📂 文件资源管理器基础',content:`
+      <h4>📂 文件资源管理器基础</h4>
+      <p>本系统模拟 Windows 文件资源管理器的界面和核心功能，同时将操作系统底层原理（磁盘管理、内存缓冲、进程调度、同步通信等）进行可视化展示。</p>
+      <p>主界面分为以下区域：</p>
+      <ul>
+        <li><b>导航窗格</b>（左侧）：多级目录树，点击 <b>▶</b> 展开/收回子目录，点击文件夹过滤文件列表</li>
+        <li><b>文件列表</b>（右侧）：显示当前目录下所有文件，支持 <b>3种视图</b>（详情/列表/大图标）</li>
+        <li><b>地址栏-搜索栏</b>（顶部）：显示当前路径，点击 🔍 切换搜索模式实时过滤文件</li>
+        <li><b>状态栏</b>（底部）：磁盘使用率、文件统计、选中项信息、系统模式</li>
+        <li><b>控制台</b>（底部可折叠）：操作日志 + 命令行终端</li>
+      </ul>
+      <p>点击 <span class="key">F5</span> 刷新、<span class="key">Backspace</span> 返回上级目录。</p>
+    `},
+    {id:'files',title:'📄 文件操作',content:`
+      <h4>📄 文件操作</h4>
+      <p>本系统支持完整的文件 CRUD 操作，底层基于 <b>连续存储分配</b>（首次适应），空闲块管理采用 <b>位示图法</b>。</p>
+      <ul>
+        <li><b>新建文件</b>：工具栏 <b>📄</b> / 菜单「文件→新建文件」 / <span class="key">Ctrl+N</span> → 弹出新建对话框，输入文件名、用户、块数、内容</li>
+        <li><b>查看文件</b>：<b>双击</b> 文件或选中后 <span class="key">Enter</span> → 弹窗按块显示内容，同时触发缓冲页逐块加载动画</li>
+        <li><b>编辑文件</b>：选中文件 → 工具栏 <b>✏️</b> / 右键「编辑」 → 按块编辑内容 → 💾保存</li>
+        <li><b>删除文件</b>：选中文件 → <span class="key">Delete</span> / 工具栏 <b>🗑️</b> → 文件保护机制检查后释放物理块</li>
+        <li><b>重命名</b>：选中文件 → <span class="key">F2</span> → 文件名变为可编辑输入框 → <span class="key">Enter</span> 确认</li>
+        <li><b>属性/FCB</b>：选中文件 → 右键「属性」/ 工具栏 <b>ℹ️</b> → 弹窗显示FCB完整信息</li>
+      </ul>
+      <p><b>文件保护机制</b>：正在查看/编辑的文件（显示 🟡 使用中标记）不可被删除，防止并发访问冲突。</p>
+    `},
+    {id:'exe',title:'⚡ 可执行应用程序',content:`
+      <h4>⚡ 可执行应用程序 (.exe)</h4>
+      <p>文件系统中的 <b>.exe</b> 文件代表真实的桌面应用程序，<b>双击运行</b> 打开程序界面。每个程序都可点击 <b>🔍 查看底层原理</b> 按钮，实时查看背后的 OS 算法运行。</p>
+      <ul>
+        <li><b>🖨️ printer.exe</b>（打印机）— 管理打印作业队列，选择 PDF 文件后执行多道程序调度。🔍 查看 <b>进程调度甘特图</b></li>
+        <li><b>🎨 paint.exe</b>（画图）— Canvas 画板，支持画笔/矩形绘制，选色保存为 PNG。保存时自动弹出 <b>位示图</b> 展示磁盘块分配</li>
+        <li><b>📝 notepad.exe</b>（记事本）— 文本编辑器，编辑后保存为 .txt 文件。保存时自动弹出 <b>缓冲页面板</b> 展示 LRU 逐块加载</li>
+        <li><b>🧮 calc.exe</b>（计算器）— 标准计算器键盘，支持 + - * / 运算。每次运算结果通过 <b>共享内存</b> 传递</li>
+      </ul>
+      <p>以上 4 个应用程序在每次打开页面时自动创建在 <b>system</b> 文件夹中。</p>
+      <p><b>拖放操作</b>：选中 PDF/TXT 文件，拖到 printer.exe 图标上释放，即可将文件加入打印队列。</p>
+    `},
+    {id:'folders',title:'📁 文件夹管理',content:`
+      <h4>📁 文件夹管理（层级嵌套）</h4>
+      <p>支持无限层级的文件夹结构：</p>
+      <ul>
+        <li><b>新建文件夹</b>：右键空白区域 → 📁 新建文件夹 → 输入名称</li>
+        <li><b>嵌套创建</b>：进入某文件夹后再新建，自动成为子文件夹（如 <span class="cmd">项目/文档</span>）</li>
+        <li><b>导航树</b>：左侧自动展示层级结构，▶ 展开/收回子文件夹</li>
+        <li><b>文件归属</b>：在文件夹内新建文件，自动归属到该路径</li>
+      </ul>
+    `},
+    {id:'behind',title:'🔍 背后原理查看 & 分配策略',content:`
+      <h4>🔍 背后原理查看</h4>
+      <p>在文件列表或磁盘块上 <b>右键点击</b>，可查看操作系统在后台的运行原理。</p>
+      <ul>
+        <li><b>🗺️ 位示图 (Bitmap)</b> — 64×16 网格展示全部 1024 块的占用状态（绿=空闲 / 红=已用 / 紫=目录 / 粉紫=元数据）</li>
+        <li><b>🔗 FAT 链表视图</b> — 每个文件的块号链（如 24→25→26→EOF）及 FAT 表（块号 | Next | 所属文件）</li>
+        <li><b>📊 空闲盘区链 ⭐</b> — 分配策略可选 <b>First-Fit（首次适应）</b>或 <b>Best-Fit（最佳适应）</b>，链式可视化展示空闲节点 [start:count]→...→null，分配时控制台输出详细扫描过程</li>
+        <li><b>📝 FCB 详情</b> — 文件控制块完整信息：文件名、用户、时间、权限、起始块、占用块数、数据量、数据块指针</li>
+        <li><b>📑 内存缓冲页 ⭐</b> — 8 个缓冲页可视化卡片，LRU 置换策略，显示块号/所有者/访问时间/脏页标记，外加 <b>HIT/MISS 统计</b>和 <b>命中率</b></li>
+        <li><b>💾 磁盘网格</b> — 32×32 网格展示全部盘块，不同类型不同颜色，hover 显示块信息</li>
+      </ul>
+      <p>所有原理视图均可从菜单栏「查看」或右键菜单进入。</p>
+    `},
+    {id:'terminal',title:'💻 命令行终端',content:`
+      <h4>💻 命令行终端</h4>
+      <p>底部控制台中包含命令行输入栏，支持以下命令：</p>
+      <ul>
+        <li><span class="cmd">dir [用户]</span> — 列出目录信息（文件名/创建时间/块数/权限）</li>
+        <li><span class="cmd">cat 文件名</span> — 查看文件内容（按块显示）</li>
+        <li><span class="cmd">create 文件名 [块数] [用户]</span> — 新建文件</li>
+        <li><span class="cmd">delete 文件名</span> — 删除文件</li>
+        <li><span class="cmd">modify 文件名 [块号] [内容]</span> — 修改文件指定块的内容</li>
+        <li><span class="cmd">info 文件名</span> — 查看 FCB 详细信息</li>
+        <li><span class="cmd">stat</span> — 系统状态（磁盘/文件/缓冲/写回统计）</li>
+        <li><span class="cmd">help</span> — 显示命令帮助</li>
+        <li><span class="cmd">clear</span> — 清空控制台</li>
+      </ul>
+      <p>输入命令后按 <span class="key">Enter</span> 执行，输出结果会以彩色结构化的方式显示在控制台中。</p>
+    `},
+    {id:'process',title:'⚙️ 进程模式',content:`
+      <h4>⚙️ 进程命令模式</h4>
+      <p>启用「进程模式」后，文件操作（新建/删除/查看/编辑）不会直接执行，而是生成 <b>命令进程</b> 进入就绪队列。</p>
+      <ul>
+        <li><b>开启</b>：在文件操作面板中勾选「进程模式」复选框</li>
+        <li><b>入队</b>：执行文件操作时，生成一个命令进程节点（含 PID、操作描述、状态）</li>
+        <li><b>调度</b>：点击单个进程的「调度」按钮或「调度全部」按钮</li>
+        <li><b>状态流转</b>：<span class="tag" style="background:rgba(252,225,0,.15);color:var(--yellow)">Ready</span> → <span class="tag" style="background:rgba(22,198,12,.15);color:var(--green)">Running</span> → <span class="tag" style="background:rgba(255,255,255,.05);color:var(--text2)">Done</span></li>
+        <li>Running 状态模拟调度延时 800ms 后执行实际文件操作</li>
+      </ul>
+    `},
+    {id:'demo',title:'🎬 一键演示',content:`
+      <h4>🎬 一键演示</h4>
+      <p>点击菜单「帮助→一键演示」或工具栏 🎬 按钮，系统自动按以下步骤导览全部核心功能：</p>
+      <ul>
+        <li><b>Step 1</b> — 加载磁盘示例数据（7个示例文件）</li>
+        <li><b>Step 2</b> — 查看 readme.txt，触发缓冲页逐块加载动画</li>
+        <li><b>Step 3</b> — 打开页面置换算法对比（5种算法缺页率柱状图）</li>
+        <li><b>Step 4</b> — 加载进程示例并执行 RR 调度（甘特图）</li>
+        <li><b>Step 5</b> — 加载银行家算法经典示例并查找安全序列</li>
+        <li><b>Step 6</b> — 打印调度演示（添加2个PDF作业→执行调度→甘特图+进度条）</li>
+      </ul>
+      <p>演示过程中顶部显示进度条，可随时点击「⏹ 停止」中止。</p>
+    `},
+    {id:'conflict',title:'🔒 文件冲突演示',content:`
+      <h4>🔒 文件冲突演示 + 并发控制</h4>
+      <p>系统实现了两层的并发控制：</p>
+      <ul>
+        <li><b>🔐 全局 mutex 锁</b> — 所有文件操作（创建/删除/编辑）在操作前请求锁，请求失败则加入 <b>等待队列</b>，锁释放后自动调度下一个操作</li>
+        <li><b>🔄 信号量互斥</b> — 演示 <b>二进制信号量（mutex）</b>如何保证多进程互斥访问文件：</li>
+      </ul>
+      <p>冲突演示场景（从「帮助→文件冲突演示」进入）：</p>
+      <ul>
+        <li><b>流程</b>：P1: <span class="cmd">wait(mutex)</span> → 获得锁 → 编辑 → <span class="cmd">signal(mutex)</span> → 释放锁；P2 在锁被持有时阻塞等待</li>
+      </ul>
+      <p>底部状态栏显示当前锁持有者和等待队列长度。</p>
+    `},
+    {id:'keyboard',title:'⌨️ 键盘快捷键',content:`
+      <h4>⌨️ 键盘快捷键</h4>
+      <ul>
+        <li><span class="key">Delete</span> — 删除选中文件</li>
+        <li><span class="key">F2</span> — 重命名选中文件</li>
+        <li><span class="key">F5</span> — 刷新文件列表</li>
+        <li><span class="key">Ctrl+N</span> — 新建文件</li>
+        <li><span class="key">Enter</span> — 查看/打开文件（.exe 则运行应用程序）</li>
+        <li><span class="key">Escape</span> — 退出搜索 / 关闭右键菜单</li>
+        <li><span class="key">Backspace</span> — 返回上级目录</li>
+      </ul>
+    `},
+    {id:'print',title:'🖨️ 打印作业调度',content:`
+      <h4>🖨️ 打印作业调度（printer.exe）</h4>
+      <p>打印机应用程序演示了 <b>进程调度算法</b> 在实际工程中的应用。</p>
+      <ul>
+        <li><b>启动方式</b>：双击 printer.exe / 右键文件→发送到打印机 / 拖放 PDF 到 printer.exe</li>
+        <li><b>调度算法</b>：FCFS（先来先服务）/ SJF（短作业优先）/ RR（时间片轮转）/ 优先级</li>
+        <li><b>可视化</b>：甘特图展示 CPU 时间线，每个作业有进度条、状态标记</li>
+        <li><b>统计</b>：平均等待时间、平均周转时间</li>
+        <li><b>快速演示</b>：点击「快速演示」按钮自动添加 2 个 PDF 作业并执行调度</li>
+      </ul>
+    `},
+    {id:'sample',title:'📦 示例数据',content:`
+      <h4>📦 示例数据</h4>
+      <p>点击工具栏「文件→加载示例数据」或在状态栏点击加载，系统自动创建以下文件：</p>
+      <ul>
+        <li><b>readme.txt</b> (3块) — 用户 user1，说明文档</li>
+        <li><b>config.sys</b> (2块) — 用户 user1，系统配置文件</li>
+        <li><b>data.csv</b> (4块) — 用户 user2，数据表格</li>
+        <li><b>notes.txt</b> (2块) — 用户 user2，课程笔记</li>
+        <li><b>printer.exe</b> (1块) — 系统程序，打印调度</li>
+        <li><b>1.pdf</b> (3块) — 用户 user1，示例 PDF</li>
+        <li><b>2.pdf</b> (5块) — 用户 user2，示例 PDF</li>
+      </ul>
+      <p>文件创建后自动导航到对应用户目录。</p>
+    `}
+  ];
+  let idxHtml='',docHtml='';
+  sections.forEach((s,i)=>{
+    idxHtml+=`<div class="help-index-item${i===0?' active':''}" data-idx="${i}" onclick="switchHelpSection(${i})">${s.title}</div>`;
+    docHtml+=`<div class="help-section" data-section="${i}" style="${i!==0?'display:none':''}">${s.content}</div>`;
+  });
+  idx.innerHTML=idxHtml;doc.innerHTML=docHtml;
+}
+function switchHelpSection(i){
+  document.querySelectorAll('.help-index-item').forEach(e=>e.classList.toggle('active',e.dataset.idx==i));
+  document.querySelectorAll('.help-section').forEach(e=>e.style.display=e.dataset.section==i?'':'none');
+}
 async function showConflictDemo(){
+  // Enhanced: semaphore-based mutual exclusion demo with 2 processes
   let df=files.find(f=>f.name==='conflict_test.txt');
-  if(!df){$('nfName').value='conflict_test.txt';$('nfOwner').value='user1';$('nfSize').value=3;$('nfContent').value='Conflict test file.';diskCreateFile();df=files.find(f=>f.name==='conflict_test.txt')}
+  if(!df){const wasCmd=cmdModeOn;cmdModeOn=false;$('nfName').value='conflict_test.txt';$('nfOwner').value='user1';$('nfSize').value=3;$('nfContent').value='Conflict test file for mutual exclusion demo.';diskCreateFile();cmdModeOn=wasCmd;df=files.find(f=>f.name==='conflict_test.txt')}
   if(!df)return;
   const el=$('conflictContent');el.innerHTML='';openModal('conflictModal');
-  const steps=[{c:'info',m:'📝 场景: P1(编辑) 和 P2(删除) 并发访问 conflict_test.txt'},
-    {c:'info',m:'▶ P1 请求编辑...'},{c:'info',m:'✅ P1 获得文件锁 (fileInUse = conflict_test.txt)'},
-    {c:'info',m:'▶ P2 请求删除...'},{c:'blocked',m:'⛔ P2 被拒绝！文件正在被 P1 使用'},
-    {c:'info',m:'🔄 P1 保存并关闭'},{c:'info',m:'▶ P2 重新请求删除...'},{c:'success',m:'✅ P2 成功删除文件'}];
-  for(let i=0;i<steps.length;i++){await new Promise(r=>setTimeout(r,700));el.innerHTML+=`<div class="conflict-step ${steps[i].c}">${steps[i].m}</div>`;el.scrollTop=el.scrollHeight;if(i===1){selectedFile='conflict_test.txt';fileInUse='conflict_test.txt';renderAll()}if(i===5){fileInUse=null;renderAll()}if(i===7){const idx=files.findIndex(f=>f.name==='conflict_test.txt');if(idx!==-1){const f=files[idx];for(let j=f.start;j<f.start+f.size;j++)diskBlocks[j]=null;files.splice(idx,1);selectedFile=null;updateFreeAreas();renderAll();log('✅ 冲突演示: P2 成功删除文件','ok')}}}
-  await new Promise(r=>setTimeout(r,500));el.innerHTML+=`<div class="conflict-step success" style="font-weight:600">🎬 演示完成！文件保护机制有效</div>`
+  // Semaphore-like lock: 1 = unlocked, 0 = locked
+  let fileLock=1; // binary semaphore
+  const steps=[
+    {c:'info',m:'🔐 场景: P1(编辑进程) 和 P2(删除进程) 通过信号量互斥访问 conflict_test.txt'},
+    {c:'info',m:'══════════════ 信号量初始化: mutex=1 (二进制信号量) ══════════════'},
+    {c:'info',m:'▶ P1: wait(mutex) → mutex=1, 获得锁'},
+    {c:'info',m:'✅ P1 获得文件锁，进入编辑模式 (mutex=0, fileInUse=conflict_test.txt)'},
+    {c:'info',m:'▶ P2: wait(mutex) → mutex=0, 被阻塞！'},
+    {c:'blocked',m:'⛔ P2 阻塞在 wait(mutex) 操作上，P1 正在编辑'},
+    {c:'info',m:'🔄 P1: signal(mutex) → 保存修改并释放锁 (mutex=1, fileInUse=null)'},
+    {c:'info',m:'▶ P2: wait(mutex) → mutex=1, 获得锁'},
+    {c:'info',m:'✅ P2 获得文件锁，执行删除操作'},
+    {c:'success',m:'✅ P2 成功删除文件，释放磁盘块，更新位示图'}];
+  for(let i=0;i<steps.length;i++){
+    await new Promise(r=>setTimeout(r,600));
+    if(i===2){selectedFile='conflict_test.txt';fileInUse='conflict_test.txt';fileLock=0;renderAll();log('🔒 P1 wait(mutex): 获得信号量锁','sys')}
+    if(i===4){log('⛔ P2 wait(mutex): mutex=0, 进程阻塞','err');addLog('diskLog','⛔ P2 删除被阻止: 文件正在被 P1 使用')}
+    if(i===6){fileInUse=null;fileLock=1;renderAll();log('🔓 P1 signal(mutex): 释放信号量锁','sys')}
+    if(i===8){const idx=files.findIndex(f=>f.name==='conflict_test.txt');if(idx!==-1){const f=files[idx];for(let j=f.start;j<f.start+f.size;j++)diskBlocks[j]=null;files.splice(idx,1);selectedFile=null;updateFreeAreas();renderAll();log('✅ P2: wait(mutex)成功, 删除文件, 更新位示图','ok')}}
+    el.innerHTML+=`<div class="conflict-step ${steps[i].c}">${steps[i].m}</div>`;
+    el.scrollTop=el.scrollHeight;
+  }
+  await new Promise(r=>setTimeout(r,500));
+  el.innerHTML+=`<div class="conflict-step success" style="font-weight:600">🎬 演示完成！信号量机制有效保证互斥访问</div>`;
 }
 
 // ============ SAMPLE DATA ============
